@@ -58,24 +58,24 @@ const PlayVideoIdRoute = PlayVideoIdRouteImport.update({
   getParentRoute: () => rootRouteImport,
 } as any)
 const GamesQuizRoute = GamesQuizRouteImport.update({
-  id: '/quiz',
-  path: '/quiz',
-  getParentRoute: () => GamesRoute,
+  id: '/games/quiz',
+  path: '/games/quiz',
+  getParentRoute: () => rootRouteImport,
 } as any)
 const GamesMemoryRoute = GamesMemoryRouteImport.update({
-  id: '/memory',
-  path: '/memory',
-  getParentRoute: () => GamesRoute,
+  id: '/games/memory',
+  path: '/games/memory',
+  getParentRoute: () => rootRouteImport,
 } as any)
 const GamesLabelRoute = GamesLabelRouteImport.update({
-  id: '/label',
-  path: '/label',
-  getParentRoute: () => GamesRoute,
+  id: '/games/label',
+  path: '/games/label',
+  getParentRoute: () => rootRouteImport,
 } as any)
 const GamesJigsawRoute = GamesJigsawRouteImport.update({
-  id: '/jigsaw',
-  path: '/jigsaw',
-  getParentRoute: () => GamesRoute,
+  id: '/games/jigsaw',
+  path: '/games/jigsaw',
+  getParentRoute: () => rootRouteImport,
 } as any)
 const TeacherVideoVideoIdRoute = TeacherVideoVideoIdRouteImport.update({
   id: '/video/$videoId',
@@ -173,6 +173,10 @@ export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   MatchingRoute: typeof MatchingRoute
   TeacherRoute: typeof TeacherRouteWithChildren
+  GamesJigsawRoute: typeof GamesJigsawRoute
+  GamesLabelRoute: typeof GamesLabelRoute
+  GamesMemoryRoute: typeof GamesMemoryRoute
+  GamesQuizRoute: typeof GamesQuizRoute
   PlayVideoIdRoute: typeof PlayVideoIdRoute
   GamesIndexRoute: typeof GamesIndexRoute
 }
@@ -230,31 +234,31 @@ declare module '@tanstack/react-router' {
     }
     '/games/quiz': {
       id: '/games/quiz'
-      path: '/quiz'
+      path: '/games/quiz'
       fullPath: '/games/quiz'
       preLoaderRoute: typeof GamesQuizRouteImport
-      parentRoute: typeof GamesRoute
+      parentRoute: typeof rootRouteImport
     }
     '/games/memory': {
       id: '/games/memory'
-      path: '/memory'
+      path: '/games/memory'
       fullPath: '/games/memory'
       preLoaderRoute: typeof GamesMemoryRouteImport
-      parentRoute: typeof GamesRoute
+      parentRoute: typeof rootRouteImport
     }
     '/games/label': {
       id: '/games/label'
-      path: '/label'
+      path: '/games/label'
       fullPath: '/games/label'
       preLoaderRoute: typeof GamesLabelRouteImport
-      parentRoute: typeof GamesRoute
+      parentRoute: typeof rootRouteImport
     }
     '/games/jigsaw': {
       id: '/games/jigsaw'
-      path: '/jigsaw'
+      path: '/games/jigsaw'
       fullPath: '/games/jigsaw'
       preLoaderRoute: typeof GamesJigsawRouteImport
-      parentRoute: typeof GamesRoute
+      parentRoute: typeof rootRouteImport
     }
     '/teacher/video/$videoId': {
       id: '/teacher/video/$videoId'
@@ -285,6 +289,10 @@ const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   MatchingRoute: MatchingRoute,
   TeacherRoute: TeacherRouteWithChildren,
+  GamesJigsawRoute: GamesJigsawRoute,
+  GamesLabelRoute: GamesLabelRoute,
+  GamesMemoryRoute: GamesMemoryRoute,
+  GamesQuizRoute: GamesQuizRoute,
   PlayVideoIdRoute: PlayVideoIdRoute,
   GamesIndexRoute: GamesIndexRoute,
 }
