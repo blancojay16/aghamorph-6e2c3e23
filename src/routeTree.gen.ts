@@ -11,9 +11,9 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as TeacherRouteImport } from './routes/teacher'
 import { Route as MatchingRouteImport } from './routes/matching'
-import { Route as GamesRouteImport } from './routes/games'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as TeacherIndexRouteImport } from './routes/teacher.index'
+import { Route as GamesIndexRouteImport } from './routes/games.index'
 import { Route as TeacherLoginRouteImport } from './routes/teacher.login'
 import { Route as PlayVideoIdRouteImport } from './routes/play.$videoId'
 import { Route as GamesQuizRouteImport } from './routes/games.quiz'
@@ -32,11 +32,6 @@ const MatchingRoute = MatchingRouteImport.update({
   path: '/matching',
   getParentRoute: () => rootRouteImport,
 } as any)
-const GamesRoute = GamesRouteImport.update({
-  id: '/games',
-  path: '/games',
-  getParentRoute: () => rootRouteImport,
-} as any)
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
@@ -46,6 +41,11 @@ const TeacherIndexRoute = TeacherIndexRouteImport.update({
   id: '/',
   path: '/',
   getParentRoute: () => TeacherRoute,
+} as any)
+const GamesIndexRoute = GamesIndexRouteImport.update({
+  id: '/games/',
+  path: '/games/',
+  getParentRoute: () => rootRouteImport,
 } as any)
 const TeacherLoginRoute = TeacherLoginRouteImport.update({
   id: '/login',
@@ -85,7 +85,6 @@ const TeacherVideoVideoIdRoute = TeacherVideoVideoIdRouteImport.update({
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
-  '/games': typeof GamesRouteWithChildren
   '/matching': typeof MatchingRoute
   '/teacher': typeof TeacherRouteWithChildren
   '/games/jigsaw': typeof GamesJigsawRoute
@@ -94,12 +93,12 @@ export interface FileRoutesByFullPath {
   '/games/quiz': typeof GamesQuizRoute
   '/play/$videoId': typeof PlayVideoIdRoute
   '/teacher/login': typeof TeacherLoginRoute
+  '/games/': typeof GamesIndexRoute
   '/teacher/': typeof TeacherIndexRoute
   '/teacher/video/$videoId': typeof TeacherVideoVideoIdRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
-  '/games': typeof GamesRouteWithChildren
   '/matching': typeof MatchingRoute
   '/games/jigsaw': typeof GamesJigsawRoute
   '/games/label': typeof GamesLabelRoute
@@ -107,13 +106,13 @@ export interface FileRoutesByTo {
   '/games/quiz': typeof GamesQuizRoute
   '/play/$videoId': typeof PlayVideoIdRoute
   '/teacher/login': typeof TeacherLoginRoute
+  '/games': typeof GamesIndexRoute
   '/teacher': typeof TeacherIndexRoute
   '/teacher/video/$videoId': typeof TeacherVideoVideoIdRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
-  '/games': typeof GamesRouteWithChildren
   '/matching': typeof MatchingRoute
   '/teacher': typeof TeacherRouteWithChildren
   '/games/jigsaw': typeof GamesJigsawRoute
@@ -122,6 +121,7 @@ export interface FileRoutesById {
   '/games/quiz': typeof GamesQuizRoute
   '/play/$videoId': typeof PlayVideoIdRoute
   '/teacher/login': typeof TeacherLoginRoute
+  '/games/': typeof GamesIndexRoute
   '/teacher/': typeof TeacherIndexRoute
   '/teacher/video/$videoId': typeof TeacherVideoVideoIdRoute
 }
@@ -129,7 +129,6 @@ export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
-    | '/games'
     | '/matching'
     | '/teacher'
     | '/games/jigsaw'
@@ -138,12 +137,12 @@ export interface FileRouteTypes {
     | '/games/quiz'
     | '/play/$videoId'
     | '/teacher/login'
+    | '/games/'
     | '/teacher/'
     | '/teacher/video/$videoId'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
-    | '/games'
     | '/matching'
     | '/games/jigsaw'
     | '/games/label'
@@ -151,12 +150,12 @@ export interface FileRouteTypes {
     | '/games/quiz'
     | '/play/$videoId'
     | '/teacher/login'
+    | '/games'
     | '/teacher'
     | '/teacher/video/$videoId'
   id:
     | '__root__'
     | '/'
-    | '/games'
     | '/matching'
     | '/teacher'
     | '/games/jigsaw'
@@ -165,16 +164,17 @@ export interface FileRouteTypes {
     | '/games/quiz'
     | '/play/$videoId'
     | '/teacher/login'
+    | '/games/'
     | '/teacher/'
     | '/teacher/video/$videoId'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
-  GamesRoute: typeof GamesRouteWithChildren
   MatchingRoute: typeof MatchingRoute
   TeacherRoute: typeof TeacherRouteWithChildren
   PlayVideoIdRoute: typeof PlayVideoIdRoute
+  GamesIndexRoute: typeof GamesIndexRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -193,13 +193,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof MatchingRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/games': {
-      id: '/games'
-      path: '/games'
-      fullPath: '/games'
-      preLoaderRoute: typeof GamesRouteImport
-      parentRoute: typeof rootRouteImport
-    }
     '/': {
       id: '/'
       path: '/'
@@ -213,6 +206,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/teacher/'
       preLoaderRoute: typeof TeacherIndexRouteImport
       parentRoute: typeof TeacherRoute
+    }
+    '/games/': {
+      id: '/games/'
+      path: '/games'
+      fullPath: '/games/'
+      preLoaderRoute: typeof GamesIndexRouteImport
+      parentRoute: typeof rootRouteImport
     }
     '/teacher/login': {
       id: '/teacher/login'
@@ -266,22 +266,6 @@ declare module '@tanstack/react-router' {
   }
 }
 
-interface GamesRouteChildren {
-  GamesJigsawRoute: typeof GamesJigsawRoute
-  GamesLabelRoute: typeof GamesLabelRoute
-  GamesMemoryRoute: typeof GamesMemoryRoute
-  GamesQuizRoute: typeof GamesQuizRoute
-}
-
-const GamesRouteChildren: GamesRouteChildren = {
-  GamesJigsawRoute: GamesJigsawRoute,
-  GamesLabelRoute: GamesLabelRoute,
-  GamesMemoryRoute: GamesMemoryRoute,
-  GamesQuizRoute: GamesQuizRoute,
-}
-
-const GamesRouteWithChildren = GamesRoute._addFileChildren(GamesRouteChildren)
-
 interface TeacherRouteChildren {
   TeacherLoginRoute: typeof TeacherLoginRoute
   TeacherIndexRoute: typeof TeacherIndexRoute
@@ -299,10 +283,10 @@ const TeacherRouteWithChildren =
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
-  GamesRoute: GamesRouteWithChildren,
   MatchingRoute: MatchingRoute,
   TeacherRoute: TeacherRouteWithChildren,
   PlayVideoIdRoute: PlayVideoIdRoute,
+  GamesIndexRoute: GamesIndexRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
