@@ -1,0 +1,1 @@
+DROP POLICY IF EXISTS "videos_bucket_public_read" ON storage.objects;
