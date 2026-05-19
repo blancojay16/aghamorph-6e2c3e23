@@ -1,7 +1,7 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { StudentHeader } from "@/components/student-header";
 
-export const Route = createFileRoute("/games")({
+export const Route = createFileRoute("/games/")({
   head: () => ({
     meta: [
       { title: "Games — Aghamorph" },
