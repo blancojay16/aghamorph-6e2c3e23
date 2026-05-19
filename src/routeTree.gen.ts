@@ -9,38 +9,197 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as TeacherRouteImport } from './routes/teacher'
+import { Route as MatchingRouteImport } from './routes/matching'
+import { Route as GamesRouteImport } from './routes/games'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as TeacherIndexRouteImport } from './routes/teacher.index'
+import { Route as TeacherLoginRouteImport } from './routes/teacher.login'
+import { Route as PlayVideoIdRouteImport } from './routes/play.$videoId'
+import { Route as GamesQuizRouteImport } from './routes/games.quiz'
+import { Route as GamesMemoryRouteImport } from './routes/games.memory'
+import { Route as GamesLabelRouteImport } from './routes/games.label'
+import { Route as GamesJigsawRouteImport } from './routes/games.jigsaw'
+import { Route as TeacherVideoVideoIdRouteImport } from './routes/teacher.video.$videoId'
 
+const TeacherRoute = TeacherRouteImport.update({
+  id: '/teacher',
+  path: '/teacher',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const MatchingRoute = MatchingRouteImport.update({
+  id: '/matching',
+  path: '/matching',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const GamesRoute = GamesRouteImport.update({
+  id: '/games',
+  path: '/games',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const TeacherIndexRoute = TeacherIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => TeacherRoute,
+} as any)
+const TeacherLoginRoute = TeacherLoginRouteImport.update({
+  id: '/login',
+  path: '/login',
+  getParentRoute: () => TeacherRoute,
+} as any)
+const PlayVideoIdRoute = PlayVideoIdRouteImport.update({
+  id: '/play/$videoId',
+  path: '/play/$videoId',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const GamesQuizRoute = GamesQuizRouteImport.update({
+  id: '/quiz',
+  path: '/quiz',
+  getParentRoute: () => GamesRoute,
+} as any)
+const GamesMemoryRoute = GamesMemoryRouteImport.update({
+  id: '/memory',
+  path: '/memory',
+  getParentRoute: () => GamesRoute,
+} as any)
+const GamesLabelRoute = GamesLabelRouteImport.update({
+  id: '/label',
+  path: '/label',
+  getParentRoute: () => GamesRoute,
+} as any)
+const GamesJigsawRoute = GamesJigsawRouteImport.update({
+  id: '/jigsaw',
+  path: '/jigsaw',
+  getParentRoute: () => GamesRoute,
+} as any)
+const TeacherVideoVideoIdRoute = TeacherVideoVideoIdRouteImport.update({
+  id: '/video/$videoId',
+  path: '/video/$videoId',
+  getParentRoute: () => TeacherRoute,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/games': typeof GamesRouteWithChildren
+  '/matching': typeof MatchingRoute
+  '/teacher': typeof TeacherRouteWithChildren
+  '/games/jigsaw': typeof GamesJigsawRoute
+  '/games/label': typeof GamesLabelRoute
+  '/games/memory': typeof GamesMemoryRoute
+  '/games/quiz': typeof GamesQuizRoute
+  '/play/$videoId': typeof PlayVideoIdRoute
+  '/teacher/login': typeof TeacherLoginRoute
+  '/teacher/': typeof TeacherIndexRoute
+  '/teacher/video/$videoId': typeof TeacherVideoVideoIdRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/games': typeof GamesRouteWithChildren
+  '/matching': typeof MatchingRoute
+  '/games/jigsaw': typeof GamesJigsawRoute
+  '/games/label': typeof GamesLabelRoute
+  '/games/memory': typeof GamesMemoryRoute
+  '/games/quiz': typeof GamesQuizRoute
+  '/play/$videoId': typeof PlayVideoIdRoute
+  '/teacher/login': typeof TeacherLoginRoute
+  '/teacher': typeof TeacherIndexRoute
+  '/teacher/video/$videoId': typeof TeacherVideoVideoIdRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/games': typeof GamesRouteWithChildren
+  '/matching': typeof MatchingRoute
+  '/teacher': typeof TeacherRouteWithChildren
+  '/games/jigsaw': typeof GamesJigsawRoute
+  '/games/label': typeof GamesLabelRoute
+  '/games/memory': typeof GamesMemoryRoute
+  '/games/quiz': typeof GamesQuizRoute
+  '/play/$videoId': typeof PlayVideoIdRoute
+  '/teacher/login': typeof TeacherLoginRoute
+  '/teacher/': typeof TeacherIndexRoute
+  '/teacher/video/$videoId': typeof TeacherVideoVideoIdRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/'
+  fullPaths:
+    | '/'
+    | '/games'
+    | '/matching'
+    | '/teacher'
+    | '/games/jigsaw'
+    | '/games/label'
+    | '/games/memory'
+    | '/games/quiz'
+    | '/play/$videoId'
+    | '/teacher/login'
+    | '/teacher/'
+    | '/teacher/video/$videoId'
   fileRoutesByTo: FileRoutesByTo
-  to: '/'
-  id: '__root__' | '/'
+  to:
+    | '/'
+    | '/games'
+    | '/matching'
+    | '/games/jigsaw'
+    | '/games/label'
+    | '/games/memory'
+    | '/games/quiz'
+    | '/play/$videoId'
+    | '/teacher/login'
+    | '/teacher'
+    | '/teacher/video/$videoId'
+  id:
+    | '__root__'
+    | '/'
+    | '/games'
+    | '/matching'
+    | '/teacher'
+    | '/games/jigsaw'
+    | '/games/label'
+    | '/games/memory'
+    | '/games/quiz'
+    | '/play/$videoId'
+    | '/teacher/login'
+    | '/teacher/'
+    | '/teacher/video/$videoId'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  GamesRoute: typeof GamesRouteWithChildren
+  MatchingRoute: typeof MatchingRoute
+  TeacherRoute: typeof TeacherRouteWithChildren
+  PlayVideoIdRoute: typeof PlayVideoIdRoute
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/teacher': {
+      id: '/teacher'
+      path: '/teacher'
+      fullPath: '/teacher'
+      preLoaderRoute: typeof TeacherRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/matching': {
+      id: '/matching'
+      path: '/matching'
+      fullPath: '/matching'
+      preLoaderRoute: typeof MatchingRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/games': {
+      id: '/games'
+      path: '/games'
+      fullPath: '/games'
+      preLoaderRoute: typeof GamesRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/': {
       id: '/'
       path: '/'
@@ -48,22 +207,103 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/teacher/': {
+      id: '/teacher/'
+      path: '/'
+      fullPath: '/teacher/'
+      preLoaderRoute: typeof TeacherIndexRouteImport
+      parentRoute: typeof TeacherRoute
+    }
+    '/teacher/login': {
+      id: '/teacher/login'
+      path: '/login'
+      fullPath: '/teacher/login'
+      preLoaderRoute: typeof TeacherLoginRouteImport
+      parentRoute: typeof TeacherRoute
+    }
+    '/play/$videoId': {
+      id: '/play/$videoId'
+      path: '/play/$videoId'
+      fullPath: '/play/$videoId'
+      preLoaderRoute: typeof PlayVideoIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/games/quiz': {
+      id: '/games/quiz'
+      path: '/quiz'
+      fullPath: '/games/quiz'
+      preLoaderRoute: typeof GamesQuizRouteImport
+      parentRoute: typeof GamesRoute
+    }
+    '/games/memory': {
+      id: '/games/memory'
+      path: '/memory'
+      fullPath: '/games/memory'
+      preLoaderRoute: typeof GamesMemoryRouteImport
+      parentRoute: typeof GamesRoute
+    }
+    '/games/label': {
+      id: '/games/label'
+      path: '/label'
+      fullPath: '/games/label'
+      preLoaderRoute: typeof GamesLabelRouteImport
+      parentRoute: typeof GamesRoute
+    }
+    '/games/jigsaw': {
+      id: '/games/jigsaw'
+      path: '/jigsaw'
+      fullPath: '/games/jigsaw'
+      preLoaderRoute: typeof GamesJigsawRouteImport
+      parentRoute: typeof GamesRoute
+    }
+    '/teacher/video/$videoId': {
+      id: '/teacher/video/$videoId'
+      path: '/video/$videoId'
+      fullPath: '/teacher/video/$videoId'
+      preLoaderRoute: typeof TeacherVideoVideoIdRouteImport
+      parentRoute: typeof TeacherRoute
+    }
   }
 }
 
+interface GamesRouteChildren {
+  GamesJigsawRoute: typeof GamesJigsawRoute
+  GamesLabelRoute: typeof GamesLabelRoute
+  GamesMemoryRoute: typeof GamesMemoryRoute
+  GamesQuizRoute: typeof GamesQuizRoute
+}
+
+const GamesRouteChildren: GamesRouteChildren = {
+  GamesJigsawRoute: GamesJigsawRoute,
+  GamesLabelRoute: GamesLabelRoute,
+  GamesMemoryRoute: GamesMemoryRoute,
+  GamesQuizRoute: GamesQuizRoute,
+}
+
+const GamesRouteWithChildren = GamesRoute._addFileChildren(GamesRouteChildren)
+
+interface TeacherRouteChildren {
+  TeacherLoginRoute: typeof TeacherLoginRoute
+  TeacherIndexRoute: typeof TeacherIndexRoute
+  TeacherVideoVideoIdRoute: typeof TeacherVideoVideoIdRoute
+}
+
+const TeacherRouteChildren: TeacherRouteChildren = {
+  TeacherLoginRoute: TeacherLoginRoute,
+  TeacherIndexRoute: TeacherIndexRoute,
+  TeacherVideoVideoIdRoute: TeacherVideoVideoIdRoute,
+}
+
+const TeacherRouteWithChildren =
+  TeacherRoute._addFileChildren(TeacherRouteChildren)
+
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  GamesRoute: GamesRouteWithChildren,
+  MatchingRoute: MatchingRoute,
+  TeacherRoute: TeacherRouteWithChildren,
+  PlayVideoIdRoute: PlayVideoIdRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
-
-import type { getRouter } from './router.tsx'
-import type { startInstance } from './start.ts'
-declare module '@tanstack/react-start' {
-  interface Register {
-    ssr: true
-    router: Awaited<ReturnType<typeof getRouter>>
-    config: Awaited<ReturnType<typeof startInstance.getOptions>>
-  }
-}
