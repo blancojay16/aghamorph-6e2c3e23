@@ -162,8 +162,65 @@ function VideoEditor() {
               Add at {fmt(currentTs)}
             </button>
           </form>
+          </div>
         </aside>
       </div>
     </div>
   );
 }
+
+function ShareQR({ videoId, title }: { videoId: string; title: string }) {
+  const url =
+    typeof window !== "undefined"
+      ? `${window.location.origin}/play/${videoId}`
+      : `/play/${videoId}`;
+
+  const copy = async () => {
+    try {
+      await navigator.clipboard.writeText(url);
+      toast.success("Link copied");
+    } catch {
+      toast.error("Copy failed");
+    }
+  };
+
+  const download = () => {
+    const canvas = document.querySelector<HTMLCanvasElement>("#lesson-qr canvas");
+    if (!canvas) return;
+    const link = document.createElement("a");
+    link.download = `${title.replace(/[^a-z0-9-_]+/gi, "_")}-qr.png`;
+    link.href = canvas.toDataURL("image/png");
+    link.click();
+  };
+
+  return (
+    <div className="bg-card rounded-2xl p-5 border">
+      <h2 className="font-bold mb-1">Share with students</h2>
+      <p className="text-xs text-muted-foreground mb-3">
+        Print or display this QR. Students scan it to open the lesson.
+      </p>
+      <div
+        id="lesson-qr"
+        className="grid place-items-center bg-white p-4 rounded-xl border"
+      >
+        <QRCodeCanvas value={url} size={196} includeMargin />
+      </div>
+      <p className="text-[11px] break-all text-muted-foreground mt-2 font-mono">{url}</p>
+      <div className="flex gap-2 mt-3">
+        <button
+          onClick={copy}
+          className="flex-1 py-2 rounded-lg bg-muted hover:bg-secondary text-sm font-semibold"
+        >
+          Copy link
+        </button>
+        <button
+          onClick={download}
+          className="flex-1 py-2 rounded-lg bg-primary text-primary-foreground text-sm font-semibold"
+        >
+          Download QR
+        </button>
+      </div>
+    </div>
+  );
+}
+
