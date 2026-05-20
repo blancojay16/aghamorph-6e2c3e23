@@ -20,7 +20,7 @@ export function StudentHeader() {
   return (
     <header className="sticky top-0 z-30 backdrop-blur bg-background/80 border-b">
       <div className="mx-auto max-w-5xl px-4 py-3 flex items-center gap-3">
-        <Link to="/" className="flex items-center gap-2 font-bold text-xl">
+        <Link to="/student" className="flex items-center gap-2 font-bold text-xl">
           <span className="text-2xl">🧬</span>
           <span className="bg-gradient-to-r from-primary to-[oklch(0.7_0.18_220)] bg-clip-text text-transparent">
             Aghamorph
@@ -28,8 +28,8 @@ export function StudentHeader() {
         </Link>
         <nav className="ml-auto flex items-center gap-1 text-sm">
           <Link
-            to="/"
-            className={`px-3 py-2 rounded-full ${path === "/" ? "bg-primary text-primary-foreground" : "hover:bg-muted"}`}
+            to="/student"
+            className={`px-3 py-2 rounded-full ${path === "/student" ? "bg-primary text-primary-foreground" : "hover:bg-muted"}`}
           >
             Learn
           </Link>
@@ -39,15 +39,21 @@ export function StudentHeader() {
           >
             Games
           </Link>
+          <Link
+            to="/scan"
+            className={`px-3 py-2 rounded-full ${path === "/scan" ? "bg-primary text-primary-foreground" : "hover:bg-muted"}`}
+          >
+            Scan
+          </Link>
           <div className="ml-2 flex items-center gap-1.5 px-3 py-2 rounded-full bg-accent text-accent-foreground font-bold">
             <span>⭐</span>
             <span>{score}</span>
           </div>
           <Link
-            to="/teacher"
+            to="/"
             className="ml-1 px-3 py-2 rounded-full text-xs text-muted-foreground hover:bg-muted"
           >
-            Teacher
+            Switch role
           </Link>
         </nav>
       </div>
