@@ -10,6 +10,8 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as TeacherRouteImport } from './routes/teacher'
+import { Route as StudentRouteImport } from './routes/student'
+import { Route as ScanRouteImport } from './routes/scan'
 import { Route as MatchingRouteImport } from './routes/matching'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as TeacherIndexRouteImport } from './routes/teacher.index'
@@ -25,6 +27,16 @@ import { Route as TeacherVideoVideoIdRouteImport } from './routes/teacher.video.
 const TeacherRoute = TeacherRouteImport.update({
   id: '/teacher',
   path: '/teacher',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const StudentRoute = StudentRouteImport.update({
+  id: '/student',
+  path: '/student',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ScanRoute = ScanRouteImport.update({
+  id: '/scan',
+  path: '/scan',
   getParentRoute: () => rootRouteImport,
 } as any)
 const MatchingRoute = MatchingRouteImport.update({
@@ -86,6 +98,8 @@ const TeacherVideoVideoIdRoute = TeacherVideoVideoIdRouteImport.update({
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/matching': typeof MatchingRoute
+  '/scan': typeof ScanRoute
+  '/student': typeof StudentRoute
   '/teacher': typeof TeacherRouteWithChildren
   '/games/jigsaw': typeof GamesJigsawRoute
   '/games/label': typeof GamesLabelRoute
@@ -100,6 +114,8 @@ export interface FileRoutesByFullPath {
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/matching': typeof MatchingRoute
+  '/scan': typeof ScanRoute
+  '/student': typeof StudentRoute
   '/games/jigsaw': typeof GamesJigsawRoute
   '/games/label': typeof GamesLabelRoute
   '/games/memory': typeof GamesMemoryRoute
@@ -114,6 +130,8 @@ export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/matching': typeof MatchingRoute
+  '/scan': typeof ScanRoute
+  '/student': typeof StudentRoute
   '/teacher': typeof TeacherRouteWithChildren
   '/games/jigsaw': typeof GamesJigsawRoute
   '/games/label': typeof GamesLabelRoute
@@ -130,6 +148,8 @@ export interface FileRouteTypes {
   fullPaths:
     | '/'
     | '/matching'
+    | '/scan'
+    | '/student'
     | '/teacher'
     | '/games/jigsaw'
     | '/games/label'
@@ -144,6 +164,8 @@ export interface FileRouteTypes {
   to:
     | '/'
     | '/matching'
+    | '/scan'
+    | '/student'
     | '/games/jigsaw'
     | '/games/label'
     | '/games/memory'
@@ -157,6 +179,8 @@ export interface FileRouteTypes {
     | '__root__'
     | '/'
     | '/matching'
+    | '/scan'
+    | '/student'
     | '/teacher'
     | '/games/jigsaw'
     | '/games/label'
@@ -172,6 +196,8 @@ export interface FileRouteTypes {
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   MatchingRoute: typeof MatchingRoute
+  ScanRoute: typeof ScanRoute
+  StudentRoute: typeof StudentRoute
   TeacherRoute: typeof TeacherRouteWithChildren
   GamesJigsawRoute: typeof GamesJigsawRoute
   GamesLabelRoute: typeof GamesLabelRoute
@@ -188,6 +214,20 @@ declare module '@tanstack/react-router' {
       path: '/teacher'
       fullPath: '/teacher'
       preLoaderRoute: typeof TeacherRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/student': {
+      id: '/student'
+      path: '/student'
+      fullPath: '/student'
+      preLoaderRoute: typeof StudentRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/scan': {
+      id: '/scan'
+      path: '/scan'
+      fullPath: '/scan'
+      preLoaderRoute: typeof ScanRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/matching': {
@@ -288,6 +328,8 @@ const TeacherRouteWithChildren =
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   MatchingRoute: MatchingRoute,
+  ScanRoute: ScanRoute,
+  StudentRoute: StudentRoute,
   TeacherRoute: TeacherRouteWithChildren,
   GamesJigsawRoute: GamesJigsawRoute,
   GamesLabelRoute: GamesLabelRoute,
