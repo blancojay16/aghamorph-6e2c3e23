@@ -125,7 +125,9 @@ function VideoEditor() {
           )}
         </div>
 
-        <aside className="bg-card rounded-2xl p-5 border h-fit">
+        <aside className="space-y-5">
+          <ShareQR videoId={videoId} title={data.video.title} />
+          <div className="bg-card rounded-2xl p-5 border h-fit">
           <h2 className="font-bold mb-3">Add checkpoint</h2>
           <p className="text-xs text-muted-foreground mb-3">
             The video will pause at <span className="font-mono">{fmt(currentTs)}</span> and show this question.
