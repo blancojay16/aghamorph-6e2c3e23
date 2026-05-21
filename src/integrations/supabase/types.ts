@@ -14,7 +14,71 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      checkpoints: {
+        Row: {
+          correct_index: number
+          created_at: string
+          id: string
+          options: Json
+          prompt: string
+          ts_seconds: number
+          video_id: string
+        }
+        Insert: {
+          correct_index: number
+          created_at?: string
+          id?: string
+          options: Json
+          prompt: string
+          ts_seconds: number
+          video_id: string
+        }
+        Update: {
+          correct_index?: number
+          created_at?: string
+          id?: string
+          options?: Json
+          prompt?: string
+          ts_seconds?: number
+          video_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "checkpoints_video_id_fkey"
+            columns: ["video_id"]
+            isOneToOne: false
+            referencedRelation: "videos"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      videos: {
+        Row: {
+          created_at: string
+          file_path: string
+          id: string
+          owner_id: string
+          system: Database["public"]["Enums"]["body_system"]
+          title: string
+        }
+        Insert: {
+          created_at?: string
+          file_path: string
+          id?: string
+          owner_id: string
+          system: Database["public"]["Enums"]["body_system"]
+          title: string
+        }
+        Update: {
+          created_at?: string
+          file_path?: string
+          id?: string
+          owner_id?: string
+          system?: Database["public"]["Enums"]["body_system"]
+          title?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
@@ -23,7 +87,12 @@ export type Database = {
       [_ in never]: never
     }
     Enums: {
-      [_ in never]: never
+      body_system:
+        | "skeletal"
+        | "muscular"
+        | "digestive"
+        | "circulatory"
+        | "respiratory"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -150,6 +219,14 @@ export type CompositeTypes<
 
 export const Constants = {
   public: {
-    Enums: {},
+    Enums: {
+      body_system: [
+        "skeletal",
+        "muscular",
+        "digestive",
+        "circulatory",
+        "respiratory",
+      ],
+    },
   },
 } as const
