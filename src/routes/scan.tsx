@@ -1,6 +1,7 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { StudentHeader } from "@/components/student-header";
 import { useState } from "react";
+import { Scanner } from "@yudiel/react-qr-scanner";
 
 export const Route = createFileRoute("/scan")({
   head: () => ({
@@ -9,26 +10,34 @@ export const Route = createFileRoute("/scan")({
   component: ScanPage,
 });
 
+function extractVideoId(raw: string): string | null {
+  const trimmed = raw.trim();
+  if (!trimmed) return null;
+  try {
+    const u = new URL(trimmed);
+    const m = u.pathname.match(/\/play\/([^/?#]+)/);
+    if (m) return m[1];
+  } catch {
+    /* not a URL */
+  }
+  return trimmed;
+}
+
 function ScanPage() {
   const navigate = useNavigate();
   const [value, setValue] = useState("");
+  const [error, setError] = useState<string | null>(null);
+  const [scanning, setScanning] = useState(true);
 
-  const open = (e: React.FormEvent) => {
+  const openId = (id: string) => {
+    setScanning(false);
+    navigate({ to: "/play/$videoId", params: { videoId: id } });
+  };
+
+  const openManual = (e: React.FormEvent) => {
     e.preventDefault();
-    const trimmed = value.trim();
-    if (!trimmed) return;
-    // Accept either a full URL or a bare video id
-    try {
-      const u = new URL(trimmed);
-      const m = u.pathname.match(/\/play\/([^/?#]+)/);
-      if (m) {
-        navigate({ to: "/play/$videoId", params: { videoId: m[1] } });
-        return;
-      }
-    } catch {
-      /* not a URL */
-    }
-    navigate({ to: "/play/$videoId", params: { videoId: trimmed } });
+    const id = extractVideoId(value);
+    if (id) openId(id);
   };
 
   return (
@@ -38,24 +47,53 @@ function ScanPage() {
         <Link to="/student" className="text-sm text-muted-foreground hover:text-foreground">
           ← Back
         </Link>
-        <h1 className="text-3xl font-extrabold mt-3 mb-2">Open a lesson</h1>
+        <h1 className="text-3xl font-extrabold mt-3 mb-2">Scan a lesson</h1>
         <p className="text-muted-foreground mb-6">
-          Scan the QR code your teacher shared using your phone's camera — it will open the
-          lesson automatically. On a computer, paste the lesson link below.
+          Point your camera at the QR code your teacher shared. The lesson will open
+          automatically.
         </p>
 
-        <form onSubmit={open} className="bg-card border rounded-2xl p-5 space-y-3">
-          <label className="block text-sm font-semibold">Lesson link or code</label>
-          <input
-            value={value}
-            onChange={(e) => setValue(e.target.value)}
-            placeholder="https://…/play/abcd-1234"
-            className="w-full px-3 py-2 rounded-lg border-2 bg-background focus:border-primary outline-none"
-          />
-          <button className="w-full py-2.5 rounded-lg bg-primary text-primary-foreground font-bold">
-            Open lesson
-          </button>
-        </form>
+        <div className="rounded-2xl overflow-hidden border-2 bg-black aspect-square mb-3">
+          {scanning && (
+            <Scanner
+              onScan={(codes) => {
+                const text = codes[0]?.rawValue;
+                if (!text) return;
+                const id = extractVideoId(text);
+                if (id) openId(id);
+              }}
+              onError={(err) => {
+                const msg = err instanceof Error ? err.message : String(err);
+                setError(msg);
+              }}
+              constraints={{ facingMode: "environment" }}
+              styles={{ container: { width: "100%", height: "100%" } }}
+            />
+          )}
+        </div>
+
+        {error && (
+          <p className="text-sm text-destructive mb-3">
+            Camera unavailable: {error}. You can paste the lesson link below instead.
+          </p>
+        )}
+
+        <details className="bg-card border rounded-2xl p-4">
+          <summary className="cursor-pointer text-sm font-semibold">
+            No camera? Paste the link
+          </summary>
+          <form onSubmit={openManual} className="mt-3 space-y-3">
+            <input
+              value={value}
+              onChange={(e) => setValue(e.target.value)}
+              placeholder="https://…/play/abcd-1234"
+              className="w-full px-3 py-2 rounded-lg border-2 bg-background focus:border-primary outline-none"
+            />
+            <button className="w-full py-2.5 rounded-lg bg-primary text-primary-foreground font-bold">
+              Open lesson
+            </button>
+          </form>
+        </details>
       </main>
     </div>
   );
