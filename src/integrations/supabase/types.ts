@@ -52,6 +52,30 @@ export type Database = {
           },
         ]
       }
+      students: {
+        Row: {
+          created_at: string
+          id: string
+          name: string
+          score: number
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          name: string
+          score?: number
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          name?: string
+          score?: number
+          updated_at?: string
+        }
+        Relationships: []
+      }
       videos: {
         Row: {
           created_at: string
