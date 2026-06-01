@@ -1,5 +1,6 @@
 // Local-first student progress: zero-login, kept in browser localStorage.
 import type { BodySystem } from "./systems";
+import { syncScore } from "./student";
 
 const KEY = "aghamorph.progress.v1";
 
@@ -36,6 +37,7 @@ export function saveProgress(p: Progress) {
   if (typeof window === "undefined") return;
   localStorage.setItem(KEY, JSON.stringify(p));
   window.dispatchEvent(new Event("aghamorph:progress"));
+  void syncScore(p.score);
 }
 
 export function addScore(delta: number) {
