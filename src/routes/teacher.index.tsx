@@ -112,6 +112,46 @@ function TeacherDashboard() {
             })}
           </ul>
         )}
+
+        <StudentsLeaderboard />
+      </section>
+          <div className="rounded-2xl bg-card p-10 text-center border-2 border-dashed">
+            <p className="text-muted-foreground">No videos yet. Upload one to get started →</p>
+          </div>
+        ) : (
+          <ul className="space-y-3">
+            {videos.map((v) => {
+              const meta = systemMeta(v.system as BodySystem);
+              return (
+                <li key={v.id} className="bg-card rounded-2xl p-4 flex items-center gap-3 border">
+                  <div
+                    className="size-12 rounded-xl grid place-items-center text-2xl"
+                    style={{ background: `color-mix(in oklab, ${meta.colorVar} 18%, transparent)` }}
+                  >
+                    {meta.emoji}
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <p className="font-bold truncate">{v.title}</p>
+                    <p className="text-xs text-muted-foreground">{meta.label} system</p>
+                  </div>
+                  <Link
+                    to="/teacher/video/$videoId"
+                    params={{ videoId: v.id }}
+                    className="px-3 py-2 rounded-full bg-primary text-primary-foreground text-sm font-semibold"
+                  >
+                    Edit
+                  </Link>
+                  <button
+                    onClick={() => remove(v.id, v.file_path)}
+                    className="px-3 py-2 rounded-full bg-muted text-sm hover:bg-destructive hover:text-destructive-foreground"
+                  >
+                    Delete
+                  </button>
+                </li>
+              );
+            })}
+          </ul>
+        )}
       </section>
 
       <aside className="bg-card rounded-2xl p-5 border h-fit sticky top-4">
