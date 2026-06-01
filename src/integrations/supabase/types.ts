@@ -81,7 +81,7 @@ export type Database = {
           created_at: string
           file_path: string
           id: string
-          owner_id: string
+          owner_id: string | null
           system: Database["public"]["Enums"]["body_system"]
           title: string
         }
@@ -89,7 +89,7 @@ export type Database = {
           created_at?: string
           file_path: string
           id?: string
-          owner_id: string
+          owner_id?: string | null
           system: Database["public"]["Enums"]["body_system"]
           title: string
         }
@@ -97,7 +97,7 @@ export type Database = {
           created_at?: string
           file_path?: string
           id?: string
-          owner_id?: string
+          owner_id?: string | null
           system?: Database["public"]["Enums"]["body_system"]
           title?: string
         }

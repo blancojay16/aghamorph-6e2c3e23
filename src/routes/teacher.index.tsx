@@ -3,7 +3,6 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { SYSTEMS, systemMeta, type BodySystem } from "@/lib/systems";
-import { useTeacherSession } from "@/hooks/use-teacher-session";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/teacher/")({
@@ -11,7 +10,6 @@ export const Route = createFileRoute("/teacher/")({
 });
 
 function TeacherDashboard() {
-  const { session } = useTeacherSession();
   const qc = useQueryClient();
   const navigate = useNavigate();
   const [uploading, setUploading] = useState(false);
@@ -20,25 +18,23 @@ function TeacherDashboard() {
   const [file, setFile] = useState<File | null>(null);
 
   const { data: videos = [] } = useQuery({
-    queryKey: ["teacher-videos", session?.user.id],
+    queryKey: ["teacher-videos"],
     queryFn: async () => {
       const { data, error } = await supabase
         .from("videos")
         .select("id,title,system,file_path,created_at")
-        .eq("owner_id", session!.user.id)
         .order("created_at", { ascending: false });
       if (error) throw error;
       return data;
     },
-    enabled: !!session,
   });
 
   const upload = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!file || !session) return;
+    if (!file) return;
     setUploading(true);
     try {
-      const path = `${session.user.id}/${Date.now()}-${file.name.replace(/[^a-zA-Z0-9._-]/g, "_")}`;
+      const path = `teacher/${Date.now()}-${file.name.replace(/[^a-zA-Z0-9._-]/g, "_")}`;
       const { error: upErr } = await supabase.storage.from("videos").upload(path, file, {
         cacheControl: "3600",
         upsert: false,
@@ -47,7 +43,7 @@ function TeacherDashboard() {
       if (upErr) throw upErr;
       const { data: row, error: insErr } = await supabase
         .from("videos")
-        .insert({ title, system, file_path: path, owner_id: session.user.id })
+        .insert({ title, system, file_path: path })
         .select()
         .single();
       if (insErr) throw insErr;
