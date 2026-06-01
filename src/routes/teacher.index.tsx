@@ -112,6 +112,8 @@ function TeacherDashboard() {
             })}
           </ul>
         )}
+
+        <StudentsLeaderboard />
       </section>
 
       <aside className="bg-card rounded-2xl p-5 border h-fit sticky top-4">
@@ -150,6 +152,57 @@ function TeacherDashboard() {
           </button>
         </form>
       </aside>
+    </div>
+  );
+}
+
+function StudentsLeaderboard() {
+  const { data: students = [], isLoading } = useQuery({
+    queryKey: ["students-leaderboard"],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("students")
+        .select("id,name,score,updated_at")
+        .order("score", { ascending: false })
+        .order("updated_at", { ascending: false });
+      if (error) throw error;
+      return data;
+    },
+    refetchInterval: 10_000,
+  });
+
+  return (
+    <div className="mt-8">
+      <div className="flex items-center justify-between mb-3">
+        <h2 className="text-xl font-bold">Students</h2>
+        <span className="text-xs text-muted-foreground">{students.length} total</span>
+      </div>
+      {isLoading ? (
+        <p className="text-sm text-muted-foreground">Loading…</p>
+      ) : students.length === 0 ? (
+        <div className="rounded-2xl bg-card p-6 text-center border-2 border-dashed">
+          <p className="text-sm text-muted-foreground">
+            No students yet. They'll appear here after entering their name.
+          </p>
+        </div>
+      ) : (
+        <ul className="space-y-2">
+          {students.map((s, i) => (
+            <li
+              key={s.id}
+              className="bg-card border rounded-2xl p-3 flex items-center gap-3"
+            >
+              <span className="size-8 rounded-full bg-muted grid place-items-center font-bold text-sm">
+                {i + 1}
+              </span>
+              <span className="flex-1 font-semibold truncate">{s.name}</span>
+              <span className="flex items-center gap-1 px-3 py-1 rounded-full bg-accent text-accent-foreground font-bold text-sm">
+                ⭐ {s.score}
+              </span>
+            </li>
+          ))}
+        </ul>
+      )}
     </div>
   );
 }
