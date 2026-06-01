@@ -3,6 +3,7 @@ import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { SYSTEMS, systemMeta, type BodySystem } from "@/lib/systems";
 import { StudentHeader } from "@/components/student-header";
+import { StudentGate } from "@/components/student-gate";
 import { loadProgress } from "@/lib/progress";
 import { useEffect, useState } from "react";
 
@@ -45,6 +46,7 @@ function StudentHome() {
   );
 
   return (
+    <StudentGate>
     <div className="min-h-screen">
       <StudentHeader />
       <main className="mx-auto max-w-5xl px-4 py-8">
