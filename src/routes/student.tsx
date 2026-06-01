@@ -133,6 +133,7 @@ function StudentHome() {
         </div>
       </main>
     </div>
+    </StudentGate>
   );
 }
 
