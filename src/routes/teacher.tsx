@@ -1,24 +1,11 @@
-import { createFileRoute, Link, Outlet, useNavigate, useRouterState } from "@tanstack/react-router";
-import { useEffect } from "react";
+import { createFileRoute, Link, Outlet, useNavigate } from "@tanstack/react-router";
 
 export const Route = createFileRoute("/teacher")({
   component: TeacherLayout,
 });
 
-const TEACHER_PIN_KEY = "teacher_pin_verified";
-
 function TeacherLayout() {
   const navigate = useNavigate();
-  const path = useRouterState({ select: (s) => s.location.pathname });
-  const isLogin = path === "/teacher/login";
-
-  useEffect(() => {
-    if (!isLogin && localStorage.getItem(TEACHER_PIN_KEY) !== "1") {
-      navigate({ to: "/teacher/login" });
-    }
-  }, [navigate, isLogin]);
-
-  if (isLogin) return <Outlet />;
 
   return (
     <div className="min-h-screen bg-secondary/30">
@@ -31,10 +18,7 @@ function TeacherLayout() {
             Student view
           </Link>
           <button
-            onClick={() => {
-              localStorage.removeItem(TEACHER_PIN_KEY);
-              navigate({ to: "/" });
-            }}
+            onClick={() => navigate({ to: "/" })}
             className="text-sm px-3 py-1.5 rounded-full bg-muted hover:bg-secondary"
           >
             Leave
