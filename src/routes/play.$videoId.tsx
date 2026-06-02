@@ -60,11 +60,20 @@ function PlayPage() {
   });
 
   const videoRef = useRef<HTMLVideoElement>(null);
+  const wrapperRef = useRef<HTMLDivElement>(null);
   const answeredRef = useRef<Set<string>>(new Set());
   const [activeCheckpoint, setActiveCheckpoint] = useState<Checkpoint | null>(null);
   const [feedback, setFeedback] = useState<"correct" | "wrong" | null>(null);
+  const [pickedIndex, setPickedIndex] = useState<number | null>(null);
   const [showQuiz, setShowQuiz] = useState(false);
   const [retakeKey, setRetakeKey] = useState(0);
+  const [fsElement, setFsElement] = useState<Element | null>(null);
+
+  useEffect(() => {
+    const onFsChange = () => setFsElement(document.fullscreenElement);
+    document.addEventListener("fullscreenchange", onFsChange);
+    return () => document.removeEventListener("fullscreenchange", onFsChange);
+  }, []);
 
   useEffect(() => {
     const v = videoRef.current;
