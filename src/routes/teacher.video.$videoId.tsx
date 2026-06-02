@@ -177,6 +177,111 @@ function VideoEditor() {
   );
 }
 
+interface QuizRow {
+  id: string;
+  prompt: string;
+  options: unknown;
+  correct_index: number;
+  position: number;
+}
+
+function QuizManager({ videoId, quiz }: { videoId: string; quiz: QuizRow[] }) {
+  const qc = useQueryClient();
+  const [prompt, setPrompt] = useState("");
+  const [opts, setOpts] = useState(["", "", "", ""]);
+  const [correct, setCorrect] = useState(0);
+
+  const add = async (e: React.FormEvent) => {
+    e.preventDefault();
+    const cleaned = opts.map((o) => o.trim()).filter(Boolean);
+    if (cleaned.length < 2) return toast.error("Add at least 2 options");
+    if (correct >= cleaned.length) return toast.error("Pick a valid correct answer");
+    const { error } = await supabase.from("quiz_questions").insert({
+      video_id: videoId,
+      prompt,
+      options: cleaned,
+      correct_index: correct,
+      position: quiz.length,
+    });
+    if (error) return toast.error(error.message);
+    toast.success("Quiz question added");
+    setPrompt("");
+    setOpts(["", "", "", ""]);
+    setCorrect(0);
+    qc.invalidateQueries({ queryKey: ["teacher-video", videoId] });
+  };
+
+  const remove = async (id: string) => {
+    await supabase.from("quiz_questions").delete().eq("id", id);
+    qc.invalidateQueries({ queryKey: ["teacher-video", videoId] });
+  };
+
+  return (
+    <div className="mt-8">
+      <h2 className="font-bold mb-2">Post-lesson quiz ({quiz.length})</h2>
+      <p className="text-xs text-muted-foreground mb-3">
+        Students see these questions after the video ends.
+      </p>
+
+      {quiz.length > 0 && (
+        <ul className="space-y-2 mb-4">
+          {quiz.map((q, i) => (
+            <li key={q.id} className="bg-card border rounded-xl p-3 flex items-start gap-3">
+              <span className="font-mono text-xs bg-primary text-primary-foreground px-2 py-1 rounded">
+                Q{i + 1}
+              </span>
+              <div className="flex-1">
+                <p className="font-semibold">{q.prompt}</p>
+                <p className="text-xs text-muted-foreground">
+                  ✓ {(q.options as string[])[q.correct_index]}
+                </p>
+              </div>
+              <button
+                onClick={() => remove(q.id)}
+                className="text-xs text-destructive hover:underline"
+              >
+                Delete
+              </button>
+            </li>
+          ))}
+        </ul>
+      )}
+
+      <form onSubmit={add} className="bg-card rounded-2xl p-5 border space-y-3">
+        <h3 className="font-bold">Add quiz question</h3>
+        <textarea
+          required
+          placeholder="Question prompt"
+          value={prompt}
+          onChange={(e) => setPrompt(e.target.value)}
+          className="w-full px-3 py-2 rounded-lg border-2 bg-background focus:border-primary outline-none min-h-[70px]"
+        />
+        {opts.map((o, i) => (
+          <div key={i} className="flex items-center gap-2">
+            <input
+              type="radio"
+              name="quiz-correct"
+              checked={correct === i}
+              onChange={() => setCorrect(i)}
+              className="size-4"
+            />
+            <input
+              placeholder={`Option ${i + 1}${i < 2 ? " (required)" : ""}`}
+              value={o}
+              onChange={(e) => setOpts(opts.map((x, j) => (j === i ? e.target.value : x)))}
+              className="flex-1 px-3 py-2 rounded-lg border-2 bg-background focus:border-primary outline-none"
+            />
+          </div>
+        ))}
+        <p className="text-xs text-muted-foreground">Radio = correct answer</p>
+        <button className="w-full py-2.5 rounded-lg bg-primary text-primary-foreground font-bold">
+          Add question
+        </button>
+      </form>
+    </div>
+  );
+}
+
 function ShareQR({ videoId, title }: { videoId: string; title: string }) {
   const url =
     typeof window !== "undefined"
