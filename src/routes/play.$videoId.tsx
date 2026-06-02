@@ -241,11 +241,13 @@ function PlayPage() {
 function CheckpointSheet({
   cp,
   feedback,
+  pickedIndex,
   onAnswer,
   onContinue,
 }: {
   cp: Checkpoint;
   feedback: "correct" | "wrong" | null;
+  pickedIndex: number | null;
   onAnswer: (i: number) => void;
   onContinue: () => void;
 }) {
@@ -259,12 +261,15 @@ function CheckpointSheet({
         <div className="space-y-2">
           {cp.options.map((opt, i) => {
             const isCorrect = i === cp.correct_index;
+            const isPicked = i === pickedIndex;
             const show = feedback !== null;
             const cls = !show
               ? "bg-muted hover:bg-secondary"
               : isCorrect
                 ? "bg-[oklch(0.85_0.15_145)] text-foreground"
-                : "bg-muted opacity-60";
+                : isPicked
+                  ? "bg-destructive text-destructive-foreground"
+                  : "bg-muted opacity-60";
             return (
               <button
                 key={i}
