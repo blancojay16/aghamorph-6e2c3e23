@@ -118,9 +118,7 @@ function VideoEditor() {
                     <p className="text-xs text-muted-foreground">
                       ✓ {(c.options as string[])[c.correct_index]}
                     </p>
-
-          <QuizManager videoId={videoId} quiz={data.quiz as QuizRow[]} />
-        </div>
+                  </div>
                   <button
                     onClick={() => removeCp(c.id)}
                     className="text-xs text-destructive hover:underline"
@@ -131,6 +129,8 @@ function VideoEditor() {
               ))}
             </ul>
           )}
+
+          <QuizManager videoId={videoId} quiz={data.quiz as QuizRow[]} />
         </div>
 
         <aside className="space-y-5">
