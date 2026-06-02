@@ -116,6 +116,7 @@ function PlayPage() {
   const onAnswer = (idx: number) => {
     if (!activeCheckpoint) return;
     const correct = idx === activeCheckpoint.correct_index;
+    setPickedIndex(idx);
     setFeedback(correct ? "correct" : "wrong");
     if (correct) addScore(5);
   };
@@ -124,6 +125,7 @@ function PlayPage() {
     if (activeCheckpoint) answeredRef.current.add(activeCheckpoint.id);
     setActiveCheckpoint(null);
     setFeedback(null);
+    setPickedIndex(null);
     videoRef.current?.play().catch(() => {});
   };
 
@@ -131,6 +133,7 @@ function PlayPage() {
     answeredRef.current = new Set();
     setActiveCheckpoint(null);
     setFeedback(null);
+    setPickedIndex(null);
     setShowQuiz(false);
     setRetakeKey((k) => k + 1);
     const v = videoRef.current;
@@ -139,6 +142,17 @@ function PlayPage() {
       v.play().catch(() => {});
     }
   };
+
+  // When an overlay needs to show but the <video> is in native fullscreen,
+  // swap fullscreen to the wrapper so the overlay is visible.
+  useEffect(() => {
+    const needsOverlay = !!activeCheckpoint || showQuiz;
+    if (!needsOverlay) return;
+    if (fsElement === videoRef.current && wrapperRef.current) {
+      const w = wrapperRef.current;
+      document.exitFullscreen().then(() => w.requestFullscreen?.()).catch(() => {});
+    }
+  }, [activeCheckpoint, showQuiz, fsElement]);
 
   return (
     <div className="min-h-screen">
