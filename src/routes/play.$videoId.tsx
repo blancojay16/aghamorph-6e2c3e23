@@ -18,6 +18,13 @@ interface Checkpoint {
   correct_index: number;
 }
 
+interface QuizQuestion {
+  id: string;
+  prompt: string;
+  options: string[];
+  correct_index: number;
+}
+
 function PlayPage() {
   const { videoId } = Route.useParams();
   const navigate = useNavigate();
@@ -25,12 +32,14 @@ function PlayPage() {
   const { data, isLoading } = useQuery({
     queryKey: ["video", videoId],
     queryFn: async () => {
-      const [{ data: video, error: ve }, { data: cps, error: ce }] = await Promise.all([
+      const [{ data: video, error: ve }, { data: cps, error: ce }, { data: qz, error: qe }] = await Promise.all([
         supabase.from("videos").select("*").eq("id", videoId).single(),
         supabase.from("checkpoints").select("*").eq("video_id", videoId).order("ts_seconds"),
+        supabase.from("quiz_questions").select("*").eq("video_id", videoId).order("position"),
       ]);
       if (ve) throw ve;
       if (ce) throw ce;
+      if (qe) throw qe;
       const { data: pub } = supabase.storage.from("videos").getPublicUrl(video.file_path);
       return {
         video,
@@ -39,6 +48,12 @@ function PlayPage() {
           ...c,
           options: Array.isArray(c.options) ? (c.options as string[]) : [],
         })) as Checkpoint[],
+        quiz: (qz ?? []).map((q) => ({
+          id: q.id,
+          prompt: q.prompt,
+          correct_index: q.correct_index,
+          options: Array.isArray(q.options) ? (q.options as string[]) : [],
+        })) as QuizQuestion[],
       };
     },
   });
@@ -47,8 +62,9 @@ function PlayPage() {
   const answeredRef = useRef<Set<string>>(new Set());
   const [activeCheckpoint, setActiveCheckpoint] = useState<Checkpoint | null>(null);
   const [feedback, setFeedback] = useState<"correct" | "wrong" | null>(null);
+  const [showQuiz, setShowQuiz] = useState(false);
+  const [retakeKey, setRetakeKey] = useState(0);
 
-  // Listen for playback time updates and pause at active checkpoints
   useEffect(() => {
     const v = videoRef.current;
     if (!v || !data) return;
@@ -66,6 +82,7 @@ function PlayPage() {
     const onEnded = () => {
       markVideoComplete(videoId);
       awardBadge(data.video.system as BodySystem);
+      if (data.quiz.length > 0) setShowQuiz(true);
     };
     v.addEventListener("timeupdate", onTime);
     v.addEventListener("ended", onEnded);
@@ -73,7 +90,7 @@ function PlayPage() {
       v.removeEventListener("timeupdate", onTime);
       v.removeEventListener("ended", onEnded);
     };
-  }, [data, activeCheckpoint, videoId]);
+  }, [data, activeCheckpoint, videoId, retakeKey]);
 
   if (isLoading || !data) {
     return (
@@ -98,6 +115,19 @@ function PlayPage() {
     setActiveCheckpoint(null);
     setFeedback(null);
     videoRef.current?.play().catch(() => {});
+  };
+
+  const retake = () => {
+    answeredRef.current = new Set();
+    setActiveCheckpoint(null);
+    setFeedback(null);
+    setShowQuiz(false);
+    setRetakeKey((k) => k + 1);
+    const v = videoRef.current;
+    if (v) {
+      v.currentTime = 0;
+      v.play().catch(() => {});
+    }
   };
 
   return (
@@ -140,11 +170,27 @@ function PlayPage() {
           )}
         </div>
 
-        <p className="text-sm text-muted-foreground mt-3">
-          {data.checkpoints.length} checkpoint{data.checkpoints.length === 1 ? "" : "s"} in this video.
-        </p>
+        <div className="mt-3 flex items-center justify-between gap-3 flex-wrap">
+          <p className="text-sm text-muted-foreground">
+            {data.checkpoints.length} checkpoint{data.checkpoints.length === 1 ? "" : "s"} · {data.quiz.length} quiz question{data.quiz.length === 1 ? "" : "s"}
+          </p>
+          <button
+            onClick={retake}
+            className="text-sm px-4 py-2 rounded-full bg-muted hover:bg-secondary font-semibold"
+          >
+            ↻ Retake lesson
+          </button>
+        </div>
 
-        <div className="mt-6 text-center">
+        <div className="mt-6 flex gap-3 justify-center flex-wrap">
+          {data.quiz.length > 0 && (
+            <button
+              onClick={() => setShowQuiz(true)}
+              className="px-5 py-2.5 rounded-full bg-primary text-primary-foreground font-semibold"
+            >
+              Take quiz →
+            </button>
+          )}
           <button
             onClick={() => navigate({ to: "/matching" })}
             className="px-5 py-2.5 rounded-full bg-secondary text-secondary-foreground font-semibold hover:bg-muted"
@@ -152,6 +198,14 @@ function PlayPage() {
             Play matching game →
           </button>
         </div>
+
+        {showQuiz && (
+          <FinalQuiz
+            questions={data.quiz}
+            onClose={() => setShowQuiz(false)}
+            onRetake={retake}
+          />
+        )}
       </main>
     </div>
   );
@@ -208,6 +262,120 @@ function CheckpointSheet({
               Continue
             </button>
           </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
+function FinalQuiz({
+  questions,
+  onClose,
+  onRetake,
+}: {
+  questions: QuizQuestion[];
+  onClose: () => void;
+  onRetake: () => void;
+}) {
+  const [idx, setIdx] = useState(0);
+  const [picked, setPicked] = useState<number | null>(null);
+  const [score, setScore] = useState(0);
+  const [done, setDone] = useState(false);
+  const awardedRef = useRef(false);
+
+  const q = questions[idx];
+
+  const submit = (i: number) => {
+    if (picked !== null) return;
+    setPicked(i);
+    if (i === q.correct_index) setScore((s) => s + 1);
+  };
+
+  const next = () => {
+    if (idx + 1 < questions.length) {
+      setIdx(idx + 1);
+      setPicked(null);
+    } else {
+      if (!awardedRef.current) {
+        const finalScore = score + (picked === q.correct_index ? 0 : 0);
+        addScore(finalScore * 3);
+        awardedRef.current = true;
+      }
+      setDone(true);
+    }
+  };
+
+  if (done) {
+    return (
+      <div className="fixed inset-0 z-50 bg-black/70 backdrop-blur-sm grid place-items-center p-4 overflow-y-auto">
+        <div className="bg-card rounded-3xl p-6 max-w-md w-full shadow-2xl text-center">
+          <div className="text-5xl mb-2">🎉</div>
+          <h2 className="text-2xl font-bold mb-1">Quiz complete!</h2>
+          <p className="text-muted-foreground mb-4">
+            You scored <span className="font-bold text-foreground">{score} / {questions.length}</span>
+          </p>
+          <div className="flex gap-2">
+            <button
+              onClick={onRetake}
+              className="flex-1 py-2.5 rounded-xl bg-muted hover:bg-secondary font-semibold"
+            >
+              Retake lesson
+            </button>
+            <button
+              onClick={onClose}
+              className="flex-1 py-2.5 rounded-xl bg-primary text-primary-foreground font-bold"
+            >
+              Done
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="fixed inset-0 z-50 bg-black/70 backdrop-blur-sm grid place-items-center p-4 overflow-y-auto">
+      <div className="bg-card rounded-3xl p-6 max-w-lg w-full shadow-2xl">
+        <div className="flex items-center justify-between mb-3">
+          <p className="text-xs uppercase tracking-wider text-primary font-bold">
+            Lesson quiz · {idx + 1} / {questions.length}
+          </p>
+          <button onClick={onClose} className="text-xs text-muted-foreground hover:text-foreground">
+            Close
+          </button>
+        </div>
+        <h2 className="text-lg sm:text-xl font-bold mb-4">{q.prompt}</h2>
+        <div className="space-y-2">
+          {q.options.map((opt, i) => {
+            const show = picked !== null;
+            const isCorrect = i === q.correct_index;
+            const isPicked = i === picked;
+            const cls = !show
+              ? "bg-muted hover:bg-secondary"
+              : isCorrect
+                ? "bg-[oklch(0.85_0.15_145)] text-foreground"
+                : isPicked
+                  ? "bg-destructive/20"
+                  : "bg-muted opacity-60";
+            return (
+              <button
+                key={i}
+                disabled={picked !== null}
+                onClick={() => submit(i)}
+                className={`w-full text-left p-3 rounded-xl font-semibold transition text-sm sm:text-base ${cls}`}
+              >
+                {opt}
+              </button>
+            );
+          })}
+        </div>
+        {picked !== null && (
+          <button
+            onClick={next}
+            className="mt-4 w-full py-2.5 rounded-xl bg-primary text-primary-foreground font-bold"
+          >
+            {idx + 1 < questions.length ? "Next question →" : "See results"}
+          </button>
         )}
       </div>
     </div>
