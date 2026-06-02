@@ -24,18 +24,24 @@ function VideoEditor() {
   const { data } = useQuery({
     queryKey: ["teacher-video", videoId],
     queryFn: async () => {
-      const [{ data: video, error: ve }, { data: cps, error: ce }] = await Promise.all([
+      const [{ data: video, error: ve }, { data: cps, error: ce }, { data: qz, error: qe }] = await Promise.all([
         supabase.from("videos").select("*").eq("id", videoId).single(),
         supabase
           .from("checkpoints")
           .select("*")
           .eq("video_id", videoId)
           .order("ts_seconds"),
+        supabase
+          .from("quiz_questions")
+          .select("*")
+          .eq("video_id", videoId)
+          .order("position"),
       ]);
       if (ve) throw ve;
       if (ce) throw ce;
+      if (qe) throw qe;
       const { data: pub } = supabase.storage.from("videos").getPublicUrl(video.file_path);
-      return { video, url: pub.publicUrl, checkpoints: cps ?? [] };
+      return { video, url: pub.publicUrl, checkpoints: cps ?? [], quiz: qz ?? [] };
     },
   });
 
