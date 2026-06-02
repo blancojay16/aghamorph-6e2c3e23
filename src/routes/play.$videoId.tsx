@@ -176,7 +176,10 @@ function PlayPage() {
           </div>
         </div>
 
-        <div className="relative rounded-2xl overflow-hidden bg-black aspect-video">
+        <div
+          ref={wrapperRef}
+          className="relative rounded-2xl overflow-hidden bg-black aspect-video fullscreen:rounded-none fullscreen:aspect-auto fullscreen:w-screen fullscreen:h-screen"
+        >
           <video
             ref={videoRef}
             src={data.url}
@@ -188,8 +191,16 @@ function PlayPage() {
             <CheckpointSheet
               cp={activeCheckpoint}
               feedback={feedback}
+              pickedIndex={pickedIndex}
               onAnswer={onAnswer}
               onContinue={dismiss}
+            />
+          )}
+          {showQuiz && (
+            <FinalQuiz
+              questions={data.quiz}
+              onClose={() => setShowQuiz(false)}
+              onRetake={retake}
             />
           )}
         </div>
@@ -222,14 +233,6 @@ function PlayPage() {
             Play matching game →
           </button>
         </div>
-
-        {showQuiz && (
-          <FinalQuiz
-            questions={data.quiz}
-            onClose={() => setShowQuiz(false)}
-            onRetake={retake}
-          />
-        )}
       </main>
     </div>
   );
