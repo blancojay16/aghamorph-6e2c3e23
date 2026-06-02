@@ -178,7 +178,7 @@ function PlayPage() {
 
         <div
           ref={wrapperRef}
-          className="relative rounded-2xl overflow-hidden bg-black aspect-video fullscreen:rounded-none fullscreen:aspect-auto fullscreen:w-screen fullscreen:h-screen"
+          className="relative rounded-2xl overflow-hidden bg-black aspect-video [&:fullscreen]:rounded-none [&:fullscreen]:aspect-auto [&:fullscreen]:w-screen [&:fullscreen]:h-screen"
         >
           <video
             ref={videoRef}
