@@ -1,6 +1,7 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { useEffect, useRef, useState } from "react";
+
 import { supabase } from "@/integrations/supabase/client";
 import { StudentHeader } from "@/components/student-header";
 import { systemMeta, type BodySystem } from "@/lib/systems";
@@ -59,11 +60,20 @@ function PlayPage() {
   });
 
   const videoRef = useRef<HTMLVideoElement>(null);
+  const wrapperRef = useRef<HTMLDivElement>(null);
   const answeredRef = useRef<Set<string>>(new Set());
   const [activeCheckpoint, setActiveCheckpoint] = useState<Checkpoint | null>(null);
   const [feedback, setFeedback] = useState<"correct" | "wrong" | null>(null);
+  const [pickedIndex, setPickedIndex] = useState<number | null>(null);
   const [showQuiz, setShowQuiz] = useState(false);
   const [retakeKey, setRetakeKey] = useState(0);
+  const [fsElement, setFsElement] = useState<Element | null>(null);
+
+  useEffect(() => {
+    const onFsChange = () => setFsElement(document.fullscreenElement);
+    document.addEventListener("fullscreenchange", onFsChange);
+    return () => document.removeEventListener("fullscreenchange", onFsChange);
+  }, []);
 
   useEffect(() => {
     const v = videoRef.current;
@@ -106,6 +116,7 @@ function PlayPage() {
   const onAnswer = (idx: number) => {
     if (!activeCheckpoint) return;
     const correct = idx === activeCheckpoint.correct_index;
+    setPickedIndex(idx);
     setFeedback(correct ? "correct" : "wrong");
     if (correct) addScore(5);
   };
@@ -114,6 +125,7 @@ function PlayPage() {
     if (activeCheckpoint) answeredRef.current.add(activeCheckpoint.id);
     setActiveCheckpoint(null);
     setFeedback(null);
+    setPickedIndex(null);
     videoRef.current?.play().catch(() => {});
   };
 
@@ -121,6 +133,7 @@ function PlayPage() {
     answeredRef.current = new Set();
     setActiveCheckpoint(null);
     setFeedback(null);
+    setPickedIndex(null);
     setShowQuiz(false);
     setRetakeKey((k) => k + 1);
     const v = videoRef.current;
@@ -129,6 +142,17 @@ function PlayPage() {
       v.play().catch(() => {});
     }
   };
+
+  // When an overlay needs to show but the <video> is in native fullscreen,
+  // swap fullscreen to the wrapper so the overlay is visible.
+  useEffect(() => {
+    const needsOverlay = !!activeCheckpoint || showQuiz;
+    if (!needsOverlay) return;
+    if (fsElement === videoRef.current && wrapperRef.current) {
+      const w = wrapperRef.current;
+      document.exitFullscreen().then(() => w.requestFullscreen?.()).catch(() => {});
+    }
+  }, [activeCheckpoint, showQuiz, fsElement]);
 
   return (
     <div className="min-h-screen">
@@ -152,7 +176,10 @@ function PlayPage() {
           </div>
         </div>
 
-        <div className="relative rounded-2xl overflow-hidden bg-black aspect-video">
+        <div
+          ref={wrapperRef}
+          className="relative rounded-2xl overflow-hidden bg-black aspect-video [&:fullscreen]:rounded-none [&:fullscreen]:aspect-auto [&:fullscreen]:w-screen [&:fullscreen]:h-screen"
+        >
           <video
             ref={videoRef}
             src={data.url}
@@ -164,8 +191,16 @@ function PlayPage() {
             <CheckpointSheet
               cp={activeCheckpoint}
               feedback={feedback}
+              pickedIndex={pickedIndex}
               onAnswer={onAnswer}
               onContinue={dismiss}
+            />
+          )}
+          {showQuiz && (
+            <FinalQuiz
+              questions={data.quiz}
+              onClose={() => setShowQuiz(false)}
+              onRetake={retake}
             />
           )}
         </div>
@@ -198,14 +233,6 @@ function PlayPage() {
             Play matching game →
           </button>
         </div>
-
-        {showQuiz && (
-          <FinalQuiz
-            questions={data.quiz}
-            onClose={() => setShowQuiz(false)}
-            onRetake={retake}
-          />
-        )}
       </main>
     </div>
   );
@@ -214,11 +241,13 @@ function PlayPage() {
 function CheckpointSheet({
   cp,
   feedback,
+  pickedIndex,
   onAnswer,
   onContinue,
 }: {
   cp: Checkpoint;
   feedback: "correct" | "wrong" | null;
+  pickedIndex: number | null;
   onAnswer: (i: number) => void;
   onContinue: () => void;
 }) {
@@ -232,12 +261,15 @@ function CheckpointSheet({
         <div className="space-y-2">
           {cp.options.map((opt, i) => {
             const isCorrect = i === cp.correct_index;
+            const isPicked = i === pickedIndex;
             const show = feedback !== null;
             const cls = !show
               ? "bg-muted hover:bg-secondary"
               : isCorrect
                 ? "bg-[oklch(0.85_0.15_145)] text-foreground"
-                : "bg-muted opacity-60";
+                : isPicked
+                  ? "bg-destructive text-destructive-foreground"
+                  : "bg-muted opacity-60";
             return (
               <button
                 key={i}
