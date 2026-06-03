@@ -52,6 +52,30 @@ export type Database = {
           },
         ]
       }
+      game_assets: {
+        Row: {
+          created_at: string
+          file_path: string
+          id: string
+          label: string
+          system: Database["public"]["Enums"]["body_system"]
+        }
+        Insert: {
+          created_at?: string
+          file_path: string
+          id?: string
+          label: string
+          system: Database["public"]["Enums"]["body_system"]
+        }
+        Update: {
+          created_at?: string
+          file_path?: string
+          id?: string
+          label?: string
+          system?: Database["public"]["Enums"]["body_system"]
+        }
+        Relationships: []
+      }
       quiz_questions: {
         Row: {
           correct_index: number
