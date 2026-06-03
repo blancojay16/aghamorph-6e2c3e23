@@ -16,6 +16,7 @@ import { Route as MatchingRouteImport } from './routes/matching'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as TeacherIndexRouteImport } from './routes/teacher.index'
 import { Route as GamesIndexRouteImport } from './routes/games.index'
+import { Route as TeacherGamesRouteImport } from './routes/teacher.games'
 import { Route as PlayVideoIdRouteImport } from './routes/play.$videoId'
 import { Route as GamesQuizRouteImport } from './routes/games.quiz'
 import { Route as GamesMemoryRouteImport } from './routes/games.memory'
@@ -57,6 +58,11 @@ const GamesIndexRoute = GamesIndexRouteImport.update({
   id: '/games/',
   path: '/games/',
   getParentRoute: () => rootRouteImport,
+} as any)
+const TeacherGamesRoute = TeacherGamesRouteImport.update({
+  id: '/games',
+  path: '/games',
+  getParentRoute: () => TeacherRoute,
 } as any)
 const PlayVideoIdRoute = PlayVideoIdRouteImport.update({
   id: '/play/$videoId',
@@ -100,6 +106,7 @@ export interface FileRoutesByFullPath {
   '/games/memory': typeof GamesMemoryRoute
   '/games/quiz': typeof GamesQuizRoute
   '/play/$videoId': typeof PlayVideoIdRoute
+  '/teacher/games': typeof TeacherGamesRoute
   '/games/': typeof GamesIndexRoute
   '/teacher/': typeof TeacherIndexRoute
   '/teacher/video/$videoId': typeof TeacherVideoVideoIdRoute
@@ -114,6 +121,7 @@ export interface FileRoutesByTo {
   '/games/memory': typeof GamesMemoryRoute
   '/games/quiz': typeof GamesQuizRoute
   '/play/$videoId': typeof PlayVideoIdRoute
+  '/teacher/games': typeof TeacherGamesRoute
   '/games': typeof GamesIndexRoute
   '/teacher': typeof TeacherIndexRoute
   '/teacher/video/$videoId': typeof TeacherVideoVideoIdRoute
@@ -130,6 +138,7 @@ export interface FileRoutesById {
   '/games/memory': typeof GamesMemoryRoute
   '/games/quiz': typeof GamesQuizRoute
   '/play/$videoId': typeof PlayVideoIdRoute
+  '/teacher/games': typeof TeacherGamesRoute
   '/games/': typeof GamesIndexRoute
   '/teacher/': typeof TeacherIndexRoute
   '/teacher/video/$videoId': typeof TeacherVideoVideoIdRoute
@@ -147,6 +156,7 @@ export interface FileRouteTypes {
     | '/games/memory'
     | '/games/quiz'
     | '/play/$videoId'
+    | '/teacher/games'
     | '/games/'
     | '/teacher/'
     | '/teacher/video/$videoId'
@@ -161,6 +171,7 @@ export interface FileRouteTypes {
     | '/games/memory'
     | '/games/quiz'
     | '/play/$videoId'
+    | '/teacher/games'
     | '/games'
     | '/teacher'
     | '/teacher/video/$videoId'
@@ -176,6 +187,7 @@ export interface FileRouteTypes {
     | '/games/memory'
     | '/games/quiz'
     | '/play/$videoId'
+    | '/teacher/games'
     | '/games/'
     | '/teacher/'
     | '/teacher/video/$videoId'
@@ -246,6 +258,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof GamesIndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/teacher/games': {
+      id: '/teacher/games'
+      path: '/games'
+      fullPath: '/teacher/games'
+      preLoaderRoute: typeof TeacherGamesRouteImport
+      parentRoute: typeof TeacherRoute
+    }
     '/play/$videoId': {
       id: '/play/$videoId'
       path: '/play/$videoId'
@@ -292,11 +311,13 @@ declare module '@tanstack/react-router' {
 }
 
 interface TeacherRouteChildren {
+  TeacherGamesRoute: typeof TeacherGamesRoute
   TeacherIndexRoute: typeof TeacherIndexRoute
   TeacherVideoVideoIdRoute: typeof TeacherVideoVideoIdRoute
 }
 
 const TeacherRouteChildren: TeacherRouteChildren = {
+  TeacherGamesRoute: TeacherGamesRoute,
   TeacherIndexRoute: TeacherIndexRoute,
   TeacherVideoVideoIdRoute: TeacherVideoVideoIdRoute,
 }
@@ -320,3 +341,13 @@ const rootRouteChildren: RootRouteChildren = {
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
+
+import type { getRouter } from './router.tsx'
+import type { startInstance } from './start.ts'
+declare module '@tanstack/react-start' {
+  interface Register {
+    ssr: true
+    router: Awaited<ReturnType<typeof getRouter>>
+    config: Awaited<ReturnType<typeof startInstance.getOptions>>
+  }
+}
