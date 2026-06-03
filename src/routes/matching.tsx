@@ -1,33 +1,24 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
 import { useMemo, useState } from "react";
+import { useQuery } from "@tanstack/react-query";
 import { StudentHeader } from "@/components/student-header";
 import { SYSTEMS, type BodySystem } from "@/lib/systems";
 import { addScore, awardBadge } from "@/lib/progress";
+import { supabase } from "@/integrations/supabase/client";
 
 export const Route = createFileRoute("/matching")({
-  head: () => ({
-    meta: [{ title: "Matching Game — Aghamorph" }],
-  }),
+  head: () => ({ meta: [{ title: "Matching Game — Aghamorph" }] }),
   component: MatchingGame,
 });
 
 interface Item {
-  text: string;
+  id: string;
+  label: string;
+  url: string;
   system: BodySystem;
 }
 
-const POOL: Item[] = [
-  { text: "Running a race", system: "muscular" },
-  { text: "Eating mango", system: "digestive" },
-  { text: "Breathing fresh air", system: "respiratory" },
-  { text: "Heart pumping blood", system: "circulatory" },
-  { text: "Standing tall", system: "skeletal" },
-  { text: "Climbing stairs", system: "muscular" },
-  { text: "Drinking water", system: "digestive" },
-  { text: "Blowing balloons", system: "respiratory" },
-  { text: "Feeling pulse on wrist", system: "circulatory" },
-  { text: "Protecting your brain", system: "skeletal" },
-];
+const ROUND_SIZE = 5;
 
 function shuffle<T>(arr: T[]): T[] {
   const a = [...arr];
@@ -39,17 +30,34 @@ function shuffle<T>(arr: T[]): T[] {
 }
 
 function MatchingGame() {
+  const { data: pool = [], isLoading } = useQuery({
+    queryKey: ["game-assets-matching"],
+    queryFn: async (): Promise<Item[]> => {
+      const { data, error } = await supabase
+        .from("game_assets")
+        .select("id,label,system,file_path")
+        .order("created_at", { ascending: false });
+      if (error) throw error;
+      return data.map((a) => ({
+        id: a.id,
+        label: a.label,
+        system: a.system as BodySystem,
+        url: supabase.storage.from("videos").getPublicUrl(a.file_path).data.publicUrl,
+      }));
+    },
+  });
+
   const [round, setRound] = useState(0);
-  const items = useMemo(() => shuffle(POOL).slice(0, 5), [round]);
+  const items = useMemo(() => shuffle(pool).slice(0, ROUND_SIZE), [pool, round]);
   const [idx, setIdx] = useState(0);
   const [picked, setPicked] = useState<BodySystem | null>(null);
   const [score, setScore] = useState(0);
 
   const current = items[idx];
-  const done = !current;
+  const done = !current && items.length > 0;
 
   const pick = (sys: BodySystem) => {
-    if (picked) return;
+    if (picked || !current) return;
     setPicked(sys);
     const correct = sys === current.system;
     if (correct) {
@@ -78,10 +86,18 @@ function MatchingGame() {
       <main className="mx-auto max-w-3xl px-4 py-8">
         <h1 className="text-3xl font-extrabold text-center mb-2">Match it! 🎯</h1>
         <p className="text-center text-muted-foreground mb-6">
-          Which body system is doing this?
+          Which body system does this belong to?
         </p>
 
-        {done ? (
+        {isLoading ? (
+          <p className="text-center text-muted-foreground">Loading…</p>
+        ) : items.length === 0 ? (
+          <div className="rounded-2xl bg-card p-10 text-center border-2 border-dashed">
+            <p className="text-muted-foreground">
+              No game images yet. Ask your teacher to upload some in Teacher → 🧩 Game images.
+            </p>
+          </div>
+        ) : done ? (
           <div className="rounded-3xl p-8 text-center bg-card border-2 border-primary">
             <div className="text-6xl mb-3">🎉</div>
             <h2 className="text-2xl font-bold mb-2">Round complete!</h2>
@@ -97,11 +113,14 @@ function MatchingGame() {
           </div>
         ) : (
           <>
-            <div className="rounded-3xl p-8 mb-6 bg-card border-2 text-center shadow-sm">
-              <p className="text-xs uppercase tracking-wider text-muted-foreground mb-2">
+            <div className="rounded-3xl p-6 mb-6 bg-card border-2 text-center shadow-sm">
+              <p className="text-xs uppercase tracking-wider text-muted-foreground mb-3">
                 Question {idx + 1} of {items.length}
               </p>
-              <p className="text-2xl md:text-3xl font-bold">{current.text}</p>
+              <div className="mx-auto max-w-xs aspect-square rounded-2xl overflow-hidden bg-muted mb-3">
+                <img src={current.url} alt={current.label} className="w-full h-full object-cover" />
+              </div>
+              <p className="text-xl md:text-2xl font-bold">{current.label}</p>
             </div>
 
             <div className="grid grid-cols-2 md:grid-cols-3 gap-3">

@@ -1,52 +1,79 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
+import { useQuery } from "@tanstack/react-query";
 import { StudentHeader } from "@/components/student-header";
 import { addScore } from "@/lib/progress";
+import { supabase } from "@/integrations/supabase/client";
+import { systemMeta, type BodySystem } from "@/lib/systems";
 
 export const Route = createFileRoute("/games/memory")({
   head: () => ({ meta: [{ title: "Memory Flip — Aghamorph" }] }),
   component: Memory,
 });
 
-const PAIRS: { a: string; b: string; color: string }[] = [
-  { a: "🫀 Heart", b: "Pumps blood", color: "var(--circulatory)" },
-  { a: "🫁 Lungs", b: "Breathe air", color: "var(--respiratory)" },
-  { a: "🧠 Brain", b: "Thinks & controls", color: "var(--respiratory)" },
-  { a: "🦴 Bones", b: "Hold body up", color: "var(--skeletal)" },
-  { a: "💪 Muscles", b: "Move the body", color: "var(--muscular)" },
-  { a: "🍎 Stomach", b: "Digests food", color: "var(--digestive)" },
-];
-
 interface Card {
   id: number;
   pairKey: number;
+  kind: "image" | "label";
   text: string;
+  url?: string;
   color: string;
 }
 
-function buildDeck(): Card[] {
-  const deck: Card[] = [];
-  PAIRS.forEach((p, i) => {
-    deck.push({ id: i * 2, pairKey: i, text: p.a, color: p.color });
-    deck.push({ id: i * 2 + 1, pairKey: i, text: p.b, color: p.color });
-  });
-  for (let i = deck.length - 1; i > 0; i--) {
+const MAX_PAIRS = 6;
+
+function shuffle<T>(arr: T[]): T[] {
+  const a = [...arr];
+  for (let i = a.length - 1; i > 0; i--) {
     const j = Math.floor(Math.random() * (i + 1));
-    [deck[i], deck[j]] = [deck[j], deck[i]];
+    [a[i], a[j]] = [a[j], a[i]];
   }
-  return deck;
+  return a;
+}
+
+function buildDeck(
+  assets: { id: string; label: string; system: BodySystem; url: string }[],
+): Card[] {
+  const pairs = shuffle(assets).slice(0, MAX_PAIRS);
+  const deck: Card[] = [];
+  pairs.forEach((p, i) => {
+    const color = systemMeta(p.system).colorVar;
+    deck.push({ id: i * 2, pairKey: i, kind: "image", text: p.label, url: p.url, color });
+    deck.push({ id: i * 2 + 1, pairKey: i, kind: "label", text: p.label, color });
+  });
+  return shuffle(deck);
 }
 
 function Memory() {
-  const [deck, setDeck] = useState<Card[]>(() => buildDeck());
+  const { data: assets = [], isLoading } = useQuery({
+    queryKey: ["game-assets-memory"],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("game_assets")
+        .select("id,label,system,file_path")
+        .order("created_at", { ascending: false });
+      if (error) throw error;
+      return data.map((a) => ({
+        id: a.id,
+        label: a.label,
+        system: a.system as BodySystem,
+        url: supabase.storage.from("videos").getPublicUrl(a.file_path).data.publicUrl,
+      }));
+    },
+  });
+
+  const [round, setRound] = useState(0);
+  const deck = useMemo(() => buildDeck(assets), [assets, round]);
+  const totalPairs = deck.length / 2;
   const [flipped, setFlipped] = useState<number[]>([]);
   const [matched, setMatched] = useState<Set<number>>(new Set());
   const [moves, setMoves] = useState(0);
 
-  const done = matched.size === PAIRS.length;
+  const done = totalPairs > 0 && matched.size === totalPairs;
 
   const click = (id: number) => {
-    if (flipped.length === 2 || flipped.includes(id) || matched.has(deck.find((c) => c.id === id)!.pairKey)) return;
+    const card = deck.find((c) => c.id === id)!;
+    if (flipped.length === 2 || flipped.includes(id) || matched.has(card.pairKey)) return;
     const next = [...flipped, id];
     setFlipped(next);
     if (next.length === 2) {
@@ -69,7 +96,7 @@ function Memory() {
   }, [done]);
 
   const reset = () => {
-    setDeck(buildDeck());
+    setRound((r) => r + 1);
     setFlipped([]);
     setMatched(new Set());
     setMoves(0);
@@ -86,43 +113,59 @@ function Memory() {
         </div>
 
         <p className="text-center text-sm text-muted-foreground mb-4">
-          Find each organ and what it does!
+          Match each picture to its name!
         </p>
 
-        <div className="grid grid-cols-3 sm:grid-cols-4 gap-2.5">
-          {deck.map((card) => {
-            const isFlipped = flipped.includes(card.id) || matched.has(card.pairKey);
-            const isMatched = matched.has(card.pairKey);
-            return (
-              <button
-                key={card.id}
-                onClick={() => click(card.id)}
-                className={`aspect-[3/4] rounded-2xl border-2 font-bold text-sm sm:text-base transition ${
-                  isFlipped
-                    ? `bg-card ${isMatched ? "opacity-60" : ""}`
-                    : "bg-primary text-primary-foreground hover:scale-105"
-                }`}
-                style={{ borderColor: isFlipped ? card.color : "transparent" }}
-              >
-                {isFlipped ? (
-                  <span className="px-1 leading-tight block">{card.text}</span>
-                ) : (
-                  <span className="text-3xl">?</span>
-                )}
-              </button>
-            );
-          })}
-        </div>
-
-        {done && (
-          <div className="mt-6 rounded-3xl p-6 text-center bg-card border-2 border-primary">
-            <div className="text-5xl mb-2">🏆</div>
-            <p className="text-xl font-bold mb-1">All matched!</p>
-            <p className="text-muted-foreground mb-4">in {moves} moves</p>
-            <button onClick={reset} className="px-5 py-2 rounded-full bg-primary text-primary-foreground font-bold">
-              Play again
-            </button>
+        {isLoading ? (
+          <p className="text-center text-muted-foreground">Loading…</p>
+        ) : deck.length === 0 ? (
+          <div className="rounded-2xl bg-card p-10 text-center border-2 border-dashed">
+            <p className="text-muted-foreground">
+              No game images yet. Ask your teacher to upload some in Teacher → 🧩 Game images.
+            </p>
           </div>
+        ) : (
+          <>
+            <div className="grid grid-cols-3 sm:grid-cols-4 gap-2.5">
+              {deck.map((card) => {
+                const isFlipped = flipped.includes(card.id) || matched.has(card.pairKey);
+                const isMatched = matched.has(card.pairKey);
+                return (
+                  <button
+                    key={card.id}
+                    onClick={() => click(card.id)}
+                    className={`aspect-[3/4] rounded-2xl border-2 font-bold text-sm sm:text-base transition overflow-hidden ${
+                      isFlipped
+                        ? `bg-card ${isMatched ? "opacity-60" : ""}`
+                        : "bg-primary text-primary-foreground hover:scale-105"
+                    }`}
+                    style={{ borderColor: isFlipped ? card.color : "transparent" }}
+                  >
+                    {isFlipped ? (
+                      card.kind === "image" ? (
+                        <img src={card.url} alt={card.text} className="w-full h-full object-cover" />
+                      ) : (
+                        <span className="px-1 leading-tight block">{card.text}</span>
+                      )
+                    ) : (
+                      <span className="text-3xl">?</span>
+                    )}
+                  </button>
+                );
+              })}
+            </div>
+
+            {done && (
+              <div className="mt-6 rounded-3xl p-6 text-center bg-card border-2 border-primary">
+                <div className="text-5xl mb-2">🏆</div>
+                <p className="text-xl font-bold mb-1">All matched!</p>
+                <p className="text-muted-foreground mb-4">in {moves} moves</p>
+                <button onClick={reset} className="px-5 py-2 rounded-full bg-primary text-primary-foreground font-bold">
+                  Play again
+                </button>
+              </div>
+            )}
+          </>
         )}
       </main>
     </div>
