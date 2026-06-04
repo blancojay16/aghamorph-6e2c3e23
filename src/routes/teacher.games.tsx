@@ -13,7 +13,7 @@ type GameKey = "jigsaw" | "memory" | "matching";
 
 const GAMES: { key: GameKey; label: string; emoji: string; hint: string }[] = [
   { key: "jigsaw", label: "Jigsaw Puzzle", emoji: "🧩", hint: "Square images work best. They'll be cut into a 3×3 puzzle." },
-  { key: "memory", label: "Memory Flip", emoji: "🧠", hint: "Each image is paired with its label. Upload at least 6 for a full deck." },
+  { key: "memory", label: "Memory Flip", emoji: "🧠", hint: "Upload any images — the game will duplicate each one so students match identical pairs." },
   { key: "matching", label: "Match It!", emoji: "🎯", hint: "Students guess the body system for each image." },
 ];
 
@@ -43,7 +43,11 @@ function TeacherGames() {
         ))}
       </div>
 
-      <GamePanel game={game} hint={GAMES.find((g) => g.key === game)!.hint} />
+      {game === "memory" ? (
+        <MemoryPanel hint={GAMES.find((g) => g.key === "memory")!.hint} />
+      ) : (
+        <GamePanel game={game} hint={GAMES.find((g) => g.key === game)!.hint} />
+      )}
     </div>
   );
 }
@@ -183,6 +187,120 @@ function GamePanel({ game, hint }: { game: GameKey; hint: string }) {
             className="w-full py-2.5 rounded-lg bg-primary text-primary-foreground font-bold disabled:opacity-60"
           >
             {uploading ? "Uploading…" : "Upload"}
+          </button>
+          <p className="text-xs text-muted-foreground">{hint}</p>
+        </form>
+      </aside>
+    </div>
+  );
+}
+
+function MemoryPanel({ hint }: { hint: string }) {
+  const qc = useQueryClient();
+  const [files, setFiles] = useState<File[]>([]);
+  const [uploading, setUploading] = useState(false);
+
+  const { data: assets = [] } = useQuery({
+    queryKey: ["game-assets", "memory"],
+    queryFn: async () => {
+      const { data, error } = await (supabase
+        .from("game_assets")
+        .select("*") as any)
+        .eq("game", "memory")
+        .order("created_at", { ascending: false });
+      if (error) throw error;
+      return (data as any[]).map((a) => ({
+        ...a,
+        url: supabase.storage.from("videos").getPublicUrl(a.file_path).data.publicUrl,
+      }));
+    },
+  });
+
+  const upload = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (files.length === 0) return;
+    setUploading(true);
+    try {
+      for (const file of files) {
+        const safeName = file.name.replace(/[^a-zA-Z0-9._-]/g, "_");
+        const path = `game-assets/memory/${Date.now()}-${Math.random().toString(36).slice(2, 8)}-${safeName}`;
+        const { error: upErr } = await supabase.storage.from("videos").upload(path, file, {
+          cacheControl: "3600",
+          upsert: false,
+          contentType: file.type,
+        });
+        if (upErr) throw upErr;
+        const { error: insErr } = await supabase
+          .from("game_assets")
+          .insert({ system: "skeletal", label: file.name, file_path: path, game: "memory" } as any);
+        if (insErr) throw insErr;
+      }
+      toast.success(`${files.length} image${files.length === 1 ? "" : "s"} uploaded!`);
+      setFiles([]);
+      qc.invalidateQueries({ queryKey: ["game-assets", "memory"] });
+    } catch (err) {
+      toast.error((err as Error).message);
+    } finally {
+      setUploading(false);
+    }
+  };
+
+  const remove = async (id: string, path: string) => {
+    if (!confirm("Delete this image?")) return;
+    await supabase.storage.from("videos").remove([path]);
+    await supabase.from("game_assets").delete().eq("id", id);
+    qc.invalidateQueries({ queryKey: ["game-assets", "memory"] });
+  };
+
+  return (
+    <div className="grid gap-6 lg:grid-cols-[1fr_360px]">
+      <section>
+        <div className="flex items-center gap-2 mb-3">
+          <h2 className="font-bold">Memory Flip images</h2>
+          <span className="text-xs text-muted-foreground">({assets.length})</span>
+        </div>
+        {assets.length === 0 ? (
+          <div className="rounded-xl bg-card border-2 border-dashed p-6 text-sm text-muted-foreground">
+            No images yet. Upload any pictures — each one will be duplicated in the game so students match identical pairs.
+          </div>
+        ) : (
+          <ul className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
+            {assets.map((a) => (
+              <li key={a.id} className="bg-card rounded-xl overflow-hidden border relative">
+                <div className="aspect-square bg-muted">
+                  <img src={a.url} alt="" className="w-full h-full object-cover" />
+                </div>
+                <button
+                  onClick={() => remove(a.id, a.file_path)}
+                  className="absolute top-1 right-1 text-xs px-2 py-1 rounded-full bg-background/90 hover:bg-destructive hover:text-destructive-foreground"
+                >
+                  ✕
+                </button>
+              </li>
+            ))}
+          </ul>
+        )}
+      </section>
+
+      <aside className="bg-card rounded-2xl p-5 border h-fit sticky top-4">
+        <h2 className="font-bold text-lg mb-3">Upload images</h2>
+        <form onSubmit={upload} className="space-y-3">
+          <input
+            required
+            type="file"
+            accept="image/*"
+            multiple
+            onChange={(e) => setFiles(Array.from(e.target.files ?? []))}
+            className="w-full text-sm"
+          />
+          {files.length > 0 && (
+            <p className="text-xs text-muted-foreground">{files.length} file{files.length === 1 ? "" : "s"} selected</p>
+          )}
+          <button
+            disabled={uploading || files.length === 0}
+            className="w-full py-2.5 rounded-lg bg-primary text-primary-foreground font-bold disabled:opacity-60"
+          >
+            {uploading ? "Uploading…" : `Upload ${files.length || ""}`}
           </button>
           <p className="text-xs text-muted-foreground">{hint}</p>
         </form>

@@ -14,10 +14,7 @@ export const Route = createFileRoute("/games/memory")({
 interface Card {
   id: number;
   pairKey: number;
-  kind: "image" | "label";
-  text: string;
-  url?: string;
-  color: string;
+  url: string;
 }
 
 const MAX_PAIRS = 6;
@@ -31,15 +28,12 @@ function shuffle<T>(arr: T[]): T[] {
   return a;
 }
 
-function buildDeck(
-  assets: { id: string; label: string; system: BodySystem; url: string }[],
-): Card[] {
+function buildDeck(assets: { id: string; url: string }[]): Card[] {
   const pairs = shuffle(assets).slice(0, MAX_PAIRS);
   const deck: Card[] = [];
   pairs.forEach((p, i) => {
-    const color = systemMeta(p.system).colorVar;
-    deck.push({ id: i * 2, pairKey: i, kind: "image", text: p.label, url: p.url, color });
-    deck.push({ id: i * 2 + 1, pairKey: i, kind: "label", text: p.label, color });
+    deck.push({ id: i * 2, pairKey: i, url: p.url });
+    deck.push({ id: i * 2 + 1, pairKey: i, url: p.url });
   });
   return shuffle(deck);
 }
@@ -50,18 +44,17 @@ function Memory() {
     queryFn: async () => {
       const { data, error } = await (supabase
         .from("game_assets")
-        .select("id,label,system,file_path") as any)
+        .select("id,file_path") as any)
         .eq("game", "memory")
         .order("created_at", { ascending: false });
       if (error) throw error;
       return (data as any[]).map((a) => ({
         id: a.id,
-        label: a.label,
-        system: a.system as BodySystem,
         url: supabase.storage.from("videos").getPublicUrl(a.file_path).data.publicUrl,
       }));
     },
   });
+
 
   const [round, setRound] = useState(0);
   const deck = useMemo(() => buildDeck(assets), [assets, round]);
