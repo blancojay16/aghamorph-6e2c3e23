@@ -130,21 +130,17 @@ function Memory() {
                     onClick={() => click(card.id)}
                     className={`aspect-[3/4] rounded-2xl border-2 font-bold text-sm sm:text-base transition overflow-hidden ${
                       isFlipped
-                        ? `bg-card ${isMatched ? "opacity-60" : ""}`
-                        : "bg-primary text-primary-foreground hover:scale-105"
+                        ? `bg-card border-primary ${isMatched ? "opacity-60" : ""}`
+                        : "bg-primary text-primary-foreground hover:scale-105 border-transparent"
                     }`}
-                    style={{ borderColor: isFlipped ? card.color : "transparent" }}
                   >
                     {isFlipped ? (
-                      card.kind === "image" ? (
-                        <img src={card.url} alt={card.text} className="w-full h-full object-cover" />
-                      ) : (
-                        <span className="px-1 leading-tight block">{card.text}</span>
-                      )
+                      <img src={card.url} alt="" className="w-full h-full object-cover" />
                     ) : (
                       <span className="text-3xl">?</span>
                     )}
                   </button>
+
                 );
               })}
             </div>
