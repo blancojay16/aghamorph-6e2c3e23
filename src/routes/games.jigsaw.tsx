@@ -32,14 +32,15 @@ type Puzzle = {
 
 function Jigsaw() {
   const { data: puzzles = [], isLoading } = useQuery({
-    queryKey: ["game-assets-jigsaw"],
+    queryKey: ["game-assets", "jigsaw"],
     queryFn: async (): Promise<Puzzle[]> => {
-      const { data, error } = await supabase
+      const { data, error } = await (supabase
         .from("game_assets")
-        .select("id,label,system,file_path")
+        .select("id,label,system,file_path") as any)
+        .eq("game", "jigsaw")
         .order("created_at", { ascending: false });
       if (error) throw error;
-      return data.map((a) => ({
+      return (data as any[]).map((a) => ({
         id: a.id,
         label: a.label,
         system: a.system as BodySystem,

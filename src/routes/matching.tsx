@@ -31,14 +31,15 @@ function shuffle<T>(arr: T[]): T[] {
 
 function MatchingGame() {
   const { data: pool = [], isLoading } = useQuery({
-    queryKey: ["game-assets-matching"],
+    queryKey: ["game-assets", "matching"],
     queryFn: async (): Promise<Item[]> => {
-      const { data, error } = await supabase
+      const { data, error } = await (supabase
         .from("game_assets")
-        .select("id,label,system,file_path")
+        .select("id,label,system,file_path") as any)
+        .eq("game", "matching")
         .order("created_at", { ascending: false });
       if (error) throw error;
-      return data.map((a) => ({
+      return (data as any[]).map((a) => ({
         id: a.id,
         label: a.label,
         system: a.system as BodySystem,
