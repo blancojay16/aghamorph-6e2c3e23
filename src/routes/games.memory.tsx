@@ -4,7 +4,7 @@ import { useQuery } from "@tanstack/react-query";
 import { StudentHeader } from "@/components/student-header";
 import { addScore } from "@/lib/progress";
 import { supabase } from "@/integrations/supabase/client";
-import { systemMeta, type BodySystem } from "@/lib/systems";
+
 
 export const Route = createFileRoute("/games/memory")({
   head: () => ({ meta: [{ title: "Memory Flip — Aghamorph" }] }),
