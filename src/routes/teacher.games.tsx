@@ -2,14 +2,53 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
-import { SYSTEMS, systemMeta, type BodySystem } from "@/lib/systems";
+import { SYSTEMS, type BodySystem } from "@/lib/systems";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/teacher/games")({
   component: TeacherGames,
 });
 
+type GameKey = "jigsaw" | "memory" | "matching";
+
+const GAMES: { key: GameKey; label: string; emoji: string; hint: string }[] = [
+  { key: "jigsaw", label: "Jigsaw Puzzle", emoji: "🧩", hint: "Square images work best. They'll be cut into a 3×3 puzzle." },
+  { key: "memory", label: "Memory Flip", emoji: "🧠", hint: "Each image is paired with its label. Upload at least 6 for a full deck." },
+  { key: "matching", label: "Match It!", emoji: "🎯", hint: "Students guess the body system for each image." },
+];
+
 function TeacherGames() {
+  const [game, setGame] = useState<GameKey>("jigsaw");
+
+  return (
+    <div>
+      <h1 className="text-2xl font-bold mb-4">Game images 🧩</h1>
+      <p className="text-sm text-muted-foreground mb-4">
+        Each game has its own image library. Pick a game tab to manage its pictures.
+      </p>
+
+      <div className="flex flex-wrap gap-2 mb-6">
+        {GAMES.map((g) => (
+          <button
+            key={g.key}
+            onClick={() => setGame(g.key)}
+            className={`px-4 py-2 rounded-full border-2 font-bold text-sm ${
+              game === g.key
+                ? "bg-primary text-primary-foreground border-primary"
+                : "bg-card hover:bg-muted"
+            }`}
+          >
+            {g.emoji} {g.label}
+          </button>
+        ))}
+      </div>
+
+      <GamePanel game={game} hint={GAMES.find((g) => g.key === game)!.hint} />
+    </div>
+  );
+}
+
+function GamePanel({ game, hint }: { game: GameKey; hint: string }) {
   const qc = useQueryClient();
   const [system, setSystem] = useState<BodySystem>("skeletal");
   const [label, setLabel] = useState("");
@@ -17,14 +56,15 @@ function TeacherGames() {
   const [uploading, setUploading] = useState(false);
 
   const { data: assets = [] } = useQuery({
-    queryKey: ["game-assets"],
+    queryKey: ["game-assets", game],
     queryFn: async () => {
-      const { data, error } = await supabase
+      const { data, error } = await (supabase
         .from("game_assets")
-        .select("*")
+        .select("*") as any)
+        .eq("game", game)
         .order("created_at", { ascending: false });
       if (error) throw error;
-      return data.map((a) => ({
+      return (data as any[]).map((a) => ({
         ...a,
         url: supabase.storage.from("videos").getPublicUrl(a.file_path).data.publicUrl,
       }));
@@ -36,7 +76,7 @@ function TeacherGames() {
     if (!file || !label.trim()) return;
     setUploading(true);
     try {
-      const path = `game-assets/${Date.now()}-${file.name.replace(/[^a-zA-Z0-9._-]/g, "_")}`;
+      const path = `game-assets/${game}/${Date.now()}-${file.name.replace(/[^a-zA-Z0-9._-]/g, "_")}`;
       const { error: upErr } = await supabase.storage.from("videos").upload(path, file, {
         cacheControl: "3600",
         upsert: false,
@@ -45,12 +85,12 @@ function TeacherGames() {
       if (upErr) throw upErr;
       const { error: insErr } = await supabase
         .from("game_assets")
-        .insert({ system, label: label.trim(), file_path: path });
+        .insert({ system, label: label.trim(), file_path: path, game } as any);
       if (insErr) throw insErr;
       toast.success("Image uploaded!");
       setLabel("");
       setFile(null);
-      qc.invalidateQueries({ queryKey: ["game-assets"] });
+      qc.invalidateQueries({ queryKey: ["game-assets", game] });
     } catch (err) {
       toast.error((err as Error).message);
     } finally {
@@ -62,7 +102,7 @@ function TeacherGames() {
     if (!confirm("Delete this image?")) return;
     await supabase.storage.from("videos").remove([path]);
     await supabase.from("game_assets").delete().eq("id", id);
-    qc.invalidateQueries({ queryKey: ["game-assets"] });
+    qc.invalidateQueries({ queryKey: ["game-assets", game] });
   };
 
   const grouped = SYSTEMS.map((s) => ({
@@ -73,10 +113,6 @@ function TeacherGames() {
   return (
     <div className="grid gap-6 lg:grid-cols-[1fr_360px]">
       <section>
-        <h1 className="text-2xl font-bold mb-4">Game images 🧩</h1>
-        <p className="text-sm text-muted-foreground mb-4">
-          Upload pictures of body parts. Students will see them shuffled in the Jigsaw game.
-        </p>
         <div className="space-y-6">
           {grouped.map(({ system: s, items }) => (
             <div key={s.key}>
@@ -148,9 +184,7 @@ function TeacherGames() {
           >
             {uploading ? "Uploading…" : "Upload"}
           </button>
-          <p className="text-xs text-muted-foreground">
-            Square images work best. They'll be cut into a 3×3 puzzle.
-          </p>
+          <p className="text-xs text-muted-foreground">{hint}</p>
         </form>
       </aside>
     </div>
