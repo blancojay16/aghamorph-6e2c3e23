@@ -56,6 +56,7 @@ export type Database = {
         Row: {
           created_at: string
           file_path: string
+          game: string
           id: string
           label: string
           system: Database["public"]["Enums"]["body_system"]
@@ -63,6 +64,7 @@ export type Database = {
         Insert: {
           created_at?: string
           file_path: string
+          game?: string
           id?: string
           label: string
           system: Database["public"]["Enums"]["body_system"]
@@ -70,6 +72,7 @@ export type Database = {
         Update: {
           created_at?: string
           file_path?: string
+          game?: string
           id?: string
           label?: string
           system?: Database["public"]["Enums"]["body_system"]
