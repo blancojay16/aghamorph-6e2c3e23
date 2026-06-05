@@ -14,7 +14,10 @@ function TeacherLayout() {
           <Link to="/teacher" className="font-bold text-lg flex items-center gap-2">
             <span>🧬</span> Aghamorph <span className="text-muted-foreground font-normal">/ Teacher</span>
           </Link>
-          <Link to="/teacher/games" className="ml-auto text-sm px-3 py-1.5 rounded-full hover:bg-muted">
+          <Link to="/teacher/students" className="ml-auto text-sm px-3 py-1.5 rounded-full hover:bg-muted">
+            👥 Students
+          </Link>
+          <Link to="/teacher/games" className="text-sm px-3 py-1.5 rounded-full hover:bg-muted">
             🧩 Game images
           </Link>
           <Link to="/" className="text-sm px-3 py-1.5 rounded-full hover:bg-muted">
