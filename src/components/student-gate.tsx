@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { loadStudent, registerStudent, type StudentRecord } from "@/lib/student";
+import { DuplicateNameError, loadStudent, registerStudent, type StudentRecord } from "@/lib/student";
 import { toast } from "sonner";
 
 export function StudentGate({ children }: { children: React.ReactNode }) {
