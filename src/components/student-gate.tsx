@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { loadStudent, registerStudent, type StudentRecord } from "@/lib/student";
+import { DuplicateNameError, loadStudent, registerStudent, type StudentRecord } from "@/lib/student";
 import { toast } from "sonner";
 
 export function StudentGate({ children }: { children: React.ReactNode }) {
@@ -24,7 +24,14 @@ export function StudentGate({ children }: { children: React.ReactNode }) {
       const rec = await registerStudent(name);
       setStudent(rec);
     } catch (err) {
-      toast.error((err as Error).message);
+      if (err instanceof DuplicateNameError) {
+        toast.error("Name already exists", {
+          description: `"${err.matched[0].name}" is already registered. Please ask your teacher to remove the existing student before signing up again.`,
+          duration: 8000,
+        });
+      } else {
+        toast.error((err as Error).message);
+      }
     } finally {
       setSubmitting(false);
     }

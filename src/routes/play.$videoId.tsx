@@ -6,6 +6,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { StudentHeader } from "@/components/student-header";
 import { systemMeta, type BodySystem } from "@/lib/systems";
 import { addScore, markVideoComplete, awardBadge } from "@/lib/progress";
+import { loadStudent } from "@/lib/student";
 
 export const Route = createFileRoute("/play/$videoId")({
   component: PlayPage,
@@ -119,7 +120,22 @@ function PlayPage() {
     const correct = idx === activeCheckpoint.correct_index;
     setPickedIndex(idx);
     setFeedback(correct ? "correct" : "wrong");
-    if (correct) addScore(5);
+    if (correct) addScore(1);
+    const student = loadStudent();
+    if (student) {
+      void supabase.from("student_answers").insert({
+        student_id: student.id,
+        video_id: videoId,
+        video_title: data.video.title,
+        source: "checkpoint",
+        question_id: activeCheckpoint.id,
+        prompt: activeCheckpoint.prompt,
+        options: activeCheckpoint.options,
+        picked_index: idx,
+        correct_index: activeCheckpoint.correct_index,
+        is_correct: correct,
+      });
+    }
   };
 
   const dismiss = () => {
@@ -210,6 +226,8 @@ function PlayPage() {
           {showQuiz && (
             <FinalQuiz
               questions={data.quiz}
+              videoId={videoId}
+              videoTitle={data.video.title}
               onClose={() => setShowQuiz(false)}
               onRetake={retake}
             />
@@ -313,10 +331,14 @@ function CheckpointSheet({
 
 function FinalQuiz({
   questions,
+  videoId,
+  videoTitle,
   onClose,
   onRetake,
 }: {
   questions: QuizQuestion[];
+  videoId: string;
+  videoTitle: string;
   onClose: () => void;
   onRetake: () => void;
 }) {
@@ -331,7 +353,26 @@ function FinalQuiz({
   const submit = (i: number) => {
     if (picked !== null) return;
     setPicked(i);
-    if (i === q.correct_index) setScore((s) => s + 1);
+    const correct = i === q.correct_index;
+    if (correct) {
+      setScore((s) => s + 1);
+      addScore(1);
+    }
+    const student = loadStudent();
+    if (student) {
+      void supabase.from("student_answers").insert({
+        student_id: student.id,
+        video_id: videoId,
+        video_title: videoTitle,
+        source: "quiz",
+        question_id: q.id,
+        prompt: q.prompt,
+        options: q.options,
+        picked_index: i,
+        correct_index: q.correct_index,
+        is_correct: correct,
+      });
+    }
   };
 
   const next = () => {
@@ -339,11 +380,7 @@ function FinalQuiz({
       setIdx(idx + 1);
       setPicked(null);
     } else {
-      if (!awardedRef.current) {
-        const finalScore = score + (picked === q.correct_index ? 0 : 0);
-        addScore(finalScore * 3);
-        awardedRef.current = true;
-      }
+      awardedRef.current = true;
       setDone(true);
     }
   };
