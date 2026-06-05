@@ -40,9 +40,10 @@ export function saveProgress(p: Progress) {
   void syncScore(p.score);
 }
 
-export function addScore(delta: number) {
+// All point-bearing actions award exactly 1 point each.
+export function addScore(_delta?: number) {
   const p = loadProgress();
-  p.score += delta;
+  p.score += 1;
   saveProgress(p);
 }
 
@@ -50,7 +51,7 @@ export function awardBadge(system: BodySystem) {
   const p = loadProgress();
   if (!p.badges[system]) {
     p.badges[system] = true;
-    p.score += 10;
+    p.score += 1;
     saveProgress(p);
   }
 }
@@ -59,7 +60,7 @@ export function markVideoComplete(videoId: string) {
   const p = loadProgress();
   if (!p.videosCompleted.includes(videoId)) {
     p.videosCompleted.push(videoId);
-    p.score += 5;
+    p.score += 1;
     saveProgress(p);
   }
 }
