@@ -226,6 +226,8 @@ function PlayPage() {
           {showQuiz && (
             <FinalQuiz
               questions={data.quiz}
+              videoId={videoId}
+              videoTitle={data.video.title}
               onClose={() => setShowQuiz(false)}
               onRetake={retake}
             />
