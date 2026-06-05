@@ -79,14 +79,13 @@ function Quiz() {
     setPicked(i);
     const correct = i === current.answer;
     if (correct) {
-      const gained = 2 + Math.min(5, streak); // streak bonus up to +5
-      setScore((s) => s + gained);
+      setScore((s) => s + 1);
       setStreak((s) => {
         const n = s + 1;
         setBest((b) => Math.max(b, n));
         return n;
       });
-      addScore(gained);
+      addScore(1);
     } else {
       setStreak(0);
     }
