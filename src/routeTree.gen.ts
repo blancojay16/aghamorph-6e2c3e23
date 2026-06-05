@@ -16,6 +16,7 @@ import { Route as MatchingRouteImport } from './routes/matching'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as TeacherIndexRouteImport } from './routes/teacher.index'
 import { Route as GamesIndexRouteImport } from './routes/games.index'
+import { Route as TeacherStudentsRouteImport } from './routes/teacher.students'
 import { Route as TeacherGamesRouteImport } from './routes/teacher.games'
 import { Route as PlayVideoIdRouteImport } from './routes/play.$videoId'
 import { Route as GamesQuizRouteImport } from './routes/games.quiz'
@@ -58,6 +59,11 @@ const GamesIndexRoute = GamesIndexRouteImport.update({
   id: '/games/',
   path: '/games/',
   getParentRoute: () => rootRouteImport,
+} as any)
+const TeacherStudentsRoute = TeacherStudentsRouteImport.update({
+  id: '/students',
+  path: '/students',
+  getParentRoute: () => TeacherRoute,
 } as any)
 const TeacherGamesRoute = TeacherGamesRouteImport.update({
   id: '/games',
@@ -107,6 +113,7 @@ export interface FileRoutesByFullPath {
   '/games/quiz': typeof GamesQuizRoute
   '/play/$videoId': typeof PlayVideoIdRoute
   '/teacher/games': typeof TeacherGamesRoute
+  '/teacher/students': typeof TeacherStudentsRoute
   '/games/': typeof GamesIndexRoute
   '/teacher/': typeof TeacherIndexRoute
   '/teacher/video/$videoId': typeof TeacherVideoVideoIdRoute
@@ -122,6 +129,7 @@ export interface FileRoutesByTo {
   '/games/quiz': typeof GamesQuizRoute
   '/play/$videoId': typeof PlayVideoIdRoute
   '/teacher/games': typeof TeacherGamesRoute
+  '/teacher/students': typeof TeacherStudentsRoute
   '/games': typeof GamesIndexRoute
   '/teacher': typeof TeacherIndexRoute
   '/teacher/video/$videoId': typeof TeacherVideoVideoIdRoute
@@ -139,6 +147,7 @@ export interface FileRoutesById {
   '/games/quiz': typeof GamesQuizRoute
   '/play/$videoId': typeof PlayVideoIdRoute
   '/teacher/games': typeof TeacherGamesRoute
+  '/teacher/students': typeof TeacherStudentsRoute
   '/games/': typeof GamesIndexRoute
   '/teacher/': typeof TeacherIndexRoute
   '/teacher/video/$videoId': typeof TeacherVideoVideoIdRoute
@@ -157,6 +166,7 @@ export interface FileRouteTypes {
     | '/games/quiz'
     | '/play/$videoId'
     | '/teacher/games'
+    | '/teacher/students'
     | '/games/'
     | '/teacher/'
     | '/teacher/video/$videoId'
@@ -172,6 +182,7 @@ export interface FileRouteTypes {
     | '/games/quiz'
     | '/play/$videoId'
     | '/teacher/games'
+    | '/teacher/students'
     | '/games'
     | '/teacher'
     | '/teacher/video/$videoId'
@@ -188,6 +199,7 @@ export interface FileRouteTypes {
     | '/games/quiz'
     | '/play/$videoId'
     | '/teacher/games'
+    | '/teacher/students'
     | '/games/'
     | '/teacher/'
     | '/teacher/video/$videoId'
@@ -258,6 +270,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof GamesIndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/teacher/students': {
+      id: '/teacher/students'
+      path: '/students'
+      fullPath: '/teacher/students'
+      preLoaderRoute: typeof TeacherStudentsRouteImport
+      parentRoute: typeof TeacherRoute
+    }
     '/teacher/games': {
       id: '/teacher/games'
       path: '/games'
@@ -312,12 +331,14 @@ declare module '@tanstack/react-router' {
 
 interface TeacherRouteChildren {
   TeacherGamesRoute: typeof TeacherGamesRoute
+  TeacherStudentsRoute: typeof TeacherStudentsRoute
   TeacherIndexRoute: typeof TeacherIndexRoute
   TeacherVideoVideoIdRoute: typeof TeacherVideoVideoIdRoute
 }
 
 const TeacherRouteChildren: TeacherRouteChildren = {
   TeacherGamesRoute: TeacherGamesRoute,
+  TeacherStudentsRoute: TeacherStudentsRoute,
   TeacherIndexRoute: TeacherIndexRoute,
   TeacherVideoVideoIdRoute: TeacherVideoVideoIdRoute,
 }
@@ -341,3 +362,13 @@ const rootRouteChildren: RootRouteChildren = {
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
+
+import type { getRouter } from './router.tsx'
+import type { startInstance } from './start.ts'
+declare module '@tanstack/react-start' {
+  interface Register {
+    ssr: true
+    router: Awaited<ReturnType<typeof getRouter>>
+    config: Awaited<ReturnType<typeof startInstance.getOptions>>
+  }
+}
