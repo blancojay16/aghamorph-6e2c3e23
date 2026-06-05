@@ -27,9 +27,39 @@ export function clearStudent() {
   window.dispatchEvent(new Event("aghamorph:student"));
 }
 
+export class DuplicateNameError extends Error {
+  matched: { id: string; name: string }[];
+  constructor(matched: { id: string; name: string }[]) {
+    super(
+      `The name "${matched[0].name}" is already registered. Please ask your teacher to remove the existing student before trying again.`,
+    );
+    this.matched = matched;
+  }
+}
+
+function tokens(name: string): string[] {
+  return name
+    .toLowerCase()
+    .split(/\s+/)
+    .map((t) => t.replace(/[^a-z0-9]/g, ""))
+    .filter((t) => t.length >= 2);
+}
+
 export async function registerStudent(name: string): Promise<StudentRecord> {
   const trimmed = name.trim().slice(0, 80);
   if (!trimmed) throw new Error("Name required");
+
+  const incomingTokens = tokens(trimmed);
+  const { data: existing, error: exErr } = await supabase
+    .from("students")
+    .select("id,name");
+  if (exErr) throw exErr;
+  const matched = (existing ?? []).filter((s) => {
+    const ts = tokens(s.name);
+    return ts.some((t) => incomingTokens.includes(t));
+  });
+  if (matched.length > 0) throw new DuplicateNameError(matched);
+
   const { data, error } = await supabase
     .from("students")
     .insert({ name: trimmed, score: 0 })
