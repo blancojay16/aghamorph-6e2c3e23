@@ -117,6 +117,59 @@ export type Database = {
           },
         ]
       }
+      student_answers: {
+        Row: {
+          correct_index: number
+          created_at: string
+          id: string
+          is_correct: boolean
+          options: Json
+          picked_index: number
+          prompt: string
+          question_id: string | null
+          source: string
+          student_id: string
+          video_id: string
+          video_title: string
+        }
+        Insert: {
+          correct_index: number
+          created_at?: string
+          id?: string
+          is_correct: boolean
+          options: Json
+          picked_index: number
+          prompt: string
+          question_id?: string | null
+          source: string
+          student_id: string
+          video_id: string
+          video_title: string
+        }
+        Update: {
+          correct_index?: number
+          created_at?: string
+          id?: string
+          is_correct?: boolean
+          options?: Json
+          picked_index?: number
+          prompt?: string
+          question_id?: string | null
+          source?: string
+          student_id?: string
+          video_id?: string
+          video_title?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "student_answers_student_id_fkey"
+            columns: ["student_id"]
+            isOneToOne: false
+            referencedRelation: "students"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       students: {
         Row: {
           created_at: string
