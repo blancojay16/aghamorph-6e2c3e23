@@ -68,6 +68,7 @@ function PlayPage() {
   const [showQuiz, setShowQuiz] = useState(false);
   const [retakeKey, setRetakeKey] = useState(0);
   const [fsElement, setFsElement] = useState<Element | null>(null);
+  const [orientation, setOrientation] = useState<"landscape" | "portrait" | null>(null);
 
   useEffect(() => {
     const onFsChange = () => setFsElement(document.fullscreenElement);
@@ -178,14 +179,24 @@ function PlayPage() {
 
         <div
           ref={wrapperRef}
-          className="relative rounded-2xl overflow-hidden bg-black aspect-video [&:fullscreen]:rounded-none [&:fullscreen]:aspect-auto [&:fullscreen]:w-screen [&:fullscreen]:h-screen"
+          className={`relative rounded-2xl overflow-hidden bg-black mx-auto [&:fullscreen]:rounded-none [&:fullscreen]:aspect-auto [&:fullscreen]:w-screen [&:fullscreen]:h-screen [&:fullscreen]:max-w-none ${
+            orientation === "portrait"
+              ? "aspect-[9/16] max-w-[min(100%,420px)]"
+              : "aspect-video w-full"
+          }`}
         >
           <video
             ref={videoRef}
             src={data.url}
             controls
             playsInline
-            className="w-full h-full"
+            onLoadedMetadata={(e) => {
+              const v = e.currentTarget;
+              if (v.videoWidth && v.videoHeight) {
+                setOrientation(v.videoHeight > v.videoWidth ? "portrait" : "landscape");
+              }
+            }}
+            className={`w-full h-full ${orientation === "portrait" ? "object-contain" : "object-contain"}`}
           />
           {activeCheckpoint && (
             <CheckpointSheet
