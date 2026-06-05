@@ -6,6 +6,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { StudentHeader } from "@/components/student-header";
 import { systemMeta, type BodySystem } from "@/lib/systems";
 import { addScore, markVideoComplete, awardBadge } from "@/lib/progress";
+import { loadStudent } from "@/lib/student";
 
 export const Route = createFileRoute("/play/$videoId")({
   component: PlayPage,
