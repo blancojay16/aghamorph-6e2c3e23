@@ -119,7 +119,22 @@ function PlayPage() {
     const correct = idx === activeCheckpoint.correct_index;
     setPickedIndex(idx);
     setFeedback(correct ? "correct" : "wrong");
-    if (correct) addScore(5);
+    if (correct) addScore(1);
+    const student = loadStudent();
+    if (student) {
+      void supabase.from("student_answers").insert({
+        student_id: student.id,
+        video_id: videoId,
+        video_title: data.video.title,
+        source: "checkpoint",
+        question_id: activeCheckpoint.id,
+        prompt: activeCheckpoint.prompt,
+        options: activeCheckpoint.options,
+        picked_index: idx,
+        correct_index: activeCheckpoint.correct_index,
+        is_correct: correct,
+      });
+    }
   };
 
   const dismiss = () => {
