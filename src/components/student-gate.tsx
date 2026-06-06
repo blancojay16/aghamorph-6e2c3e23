@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
-import { DuplicateNameError, loadStudent, registerStudent, type StudentRecord } from "@/lib/student";
+import { clearStudent, DuplicateNameError, loadStudent, registerStudent, type StudentRecord } from "@/lib/student";
+import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 
 export function StudentGate({ children }: { children: React.ReactNode }) {
@@ -15,6 +16,31 @@ export function StudentGate({ children }: { children: React.ReactNode }) {
     window.addEventListener("aghamorph:student", u);
     return () => window.removeEventListener("aghamorph:student", u);
   }, []);
+
+  // If the teacher deletes this student from the dashboard, reset locally so
+  // they're prompted for a new name.
+  useEffect(() => {
+    if (!student) return;
+    let cancelled = false;
+    const check = async () => {
+      const { data, error } = await supabase
+        .from("students")
+        .select("id")
+        .eq("id", student.id)
+        .maybeSingle();
+      if (cancelled) return;
+      if (!error && !data) {
+        clearStudent();
+        toast.info("Your teacher reset your profile. Please enter your name again.");
+      }
+    };
+    check();
+    const t = setInterval(check, 15_000);
+    return () => {
+      cancelled = true;
+      clearInterval(t);
+    };
+  }, [student]);
 
   const submit = async (e: React.FormEvent) => {
     e.preventDefault();
