@@ -4,37 +4,28 @@ import { StudentHeader } from "@/components/student-header";
 import { addScore } from "@/lib/progress";
 
 export const Route = createFileRoute("/games/label")({
-  head: () => ({ meta: [{ title: "Label the Body — Aghamorph" }] }),
+  head: () => ({ meta: [{ title: "Label the Body Systems — Aghamorph" }] }),
   component: LabelBody,
 });
 
-// Positions are % within a 200x320 SVG viewBox area shown as overlay.
 interface Spot {
   key: string;
   label: string;
   emoji: string;
-  // percentage coords for the dot
-  x: number;
+  x: number; // % within container
   y: number;
 }
 
+// Each spot is a BODY SYSTEM placed on the part of the body that best represents it.
 const SPOTS: Spot[] = [
-  { key: "brain", label: "Brain", emoji: "🧠", x: 50, y: 6 },
-  { key: "eyes", label: "Eyes", emoji: "👀", x: 50, y: 11 },
-  { key: "nose", label: "Nose", emoji: "👃", x: 50, y: 14 },
-  { key: "mouth", label: "Mouth", emoji: "👄", x: 50, y: 17 },
-  { key: "throat", label: "Throat", emoji: "🗣️", x: 50, y: 22 },
-  { key: "lungs", label: "Lungs", emoji: "🫁", x: 36, y: 32 },
-  { key: "heart", label: "Heart", emoji: "🫀", x: 56, y: 33 },
-  { key: "liver", label: "Liver", emoji: "🥩", x: 38, y: 44 },
-  { key: "stomach", label: "Stomach", emoji: "🍎", x: 58, y: 45 },
-  { key: "kidney", label: "Kidneys", emoji: "🫘", x: 50, y: 52 },
-  { key: "intestines", label: "Intestines", emoji: "🌀", x: 50, y: 60 },
-  { key: "arm", label: "Arm bone", emoji: "🦴", x: 18, y: 50 },
-  { key: "hand", label: "Hand", emoji: "✋", x: 12, y: 70 },
-  { key: "muscle", label: "Thigh muscle", emoji: "💪", x: 38, y: 78 },
-  { key: "knee", label: "Knee", emoji: "🦵", x: 62, y: 82 },
-  { key: "foot", label: "Foot", emoji: "🦶", x: 62, y: 95 },
+  { key: "nervous", label: "Nervous System", emoji: "🧠", x: 50, y: 7 },
+  { key: "respiratory", label: "Respiratory System", emoji: "🫁", x: 38, y: 32 },
+  { key: "circulatory", label: "Circulatory System", emoji: "🫀", x: 58, y: 33 },
+  { key: "digestive", label: "Digestive System", emoji: "🍎", x: 50, y: 48 },
+  { key: "excretory", label: "Excretory System", emoji: "🫘", x: 62, y: 54 },
+  { key: "muscular", label: "Muscular System", emoji: "💪", x: 22, y: 60 },
+  { key: "skeletal", label: "Skeletal System", emoji: "🦴", x: 78, y: 60 },
+  { key: "reproductive", label: "Reproductive System", emoji: "🌱", x: 50, y: 68 },
 ];
 
 function shuffle<T>(a: T[]): T[] {
@@ -49,7 +40,7 @@ function shuffle<T>(a: T[]): T[] {
 function LabelBody() {
   const [round, setRound] = useState(0);
   const labels = useMemo(() => shuffle(SPOTS), [round]);
-  const [placed, setPlaced] = useState<Record<string, string>>({}); // spotKey -> labelKey
+  const [placed, setPlaced] = useState<Record<string, string>>({});
   const [picked, setPicked] = useState<string | null>(null);
   const [wrong, setWrong] = useState<string | null>(null);
   const [hovered, setHovered] = useState<string | null>(null);
@@ -83,27 +74,27 @@ function LabelBody() {
       <main className="mx-auto max-w-3xl px-4 py-6">
         <div className="flex items-center gap-3 mb-4">
           <Link to="/games" className="size-10 grid place-items-center rounded-full bg-muted">←</Link>
-          <h1 className="text-2xl font-extrabold flex-1">Label the Body 🏷️</h1>
+          <h1 className="text-2xl font-extrabold flex-1">Label the Body Systems 🏷️</h1>
           <span className="text-xs text-muted-foreground">
             {Object.keys(placed).length}/{SPOTS.length}
           </span>
         </div>
 
         <p className="text-center text-sm text-muted-foreground mb-4">
-          Tap a label, then tap the matching spot on the body.
+          Tap a system, then tap the part of the body where it belongs.
         </p>
 
         <div className="grid md:grid-cols-2 gap-4">
           {/* Body */}
-          <div className="relative mx-auto w-full max-w-[320px] aspect-[5/8] rounded-3xl bg-gradient-to-b from-card to-secondary/40 border-2 border-border overflow-hidden">
+          <div className="relative mx-auto w-full max-w-[340px] aspect-[5/8] rounded-3xl bg-gradient-to-b from-card to-secondary/40 border-2 border-border overflow-hidden">
             <svg viewBox="0 0 200 320" className="absolute inset-0 w-full h-full p-3">
               <defs>
-                <radialGradient id="skin" cx="50%" cy="40%" r="60%">
-                  <stop offset="0%" stopColor="color-mix(in oklab, var(--primary) 22%, transparent)" />
+                <radialGradient id="skin2" cx="50%" cy="35%" r="70%">
+                  <stop offset="0%" stopColor="color-mix(in oklab, var(--primary) 25%, transparent)" />
                   <stop offset="100%" stopColor="color-mix(in oklab, var(--primary) 8%, transparent)" />
                 </radialGradient>
               </defs>
-              <g fill="url(#skin)" stroke="var(--primary)" strokeWidth="1.8" strokeLinejoin="round">
+              <g fill="url(#skin2)" stroke="var(--primary)" strokeWidth="1.8" strokeLinejoin="round">
                 {/* head + neck */}
                 <circle cx="100" cy="32" r="24" />
                 <rect x="92" y="54" width="16" height="12" rx="4" />
@@ -122,11 +113,24 @@ function LabelBody() {
                 <ellipse cx="74" cy="308" rx="14" ry="6" />
                 <ellipse cx="126" cy="308" rx="14" ry="6" />
               </g>
-              {/* subtle organ hints */}
-              <g opacity="0.35" fill="var(--primary)">
-                <ellipse cx="80" cy="105" rx="10" ry="14" />
-                <ellipse cx="118" cy="108" rx="9" ry="12" />
-                <circle cx="100" cy="145" r="10" />
+              {/* anatomy hints to help students locate systems */}
+              <g opacity="0.4" fill="none" stroke="var(--primary)" strokeWidth="1.2">
+                {/* lungs */}
+                <ellipse cx="82" cy="105" rx="12" ry="18" />
+                <ellipse cx="118" cy="105" rx="12" ry="18" />
+                {/* heart */}
+                <path d="M104 110 q6 -8 12 0 q0 10 -12 18 q-12 -8 -12 -18 q6 -8 12 0 z" />
+                {/* stomach + intestines */}
+                <path d="M88 150 q14 -8 24 4 q-4 14 -22 10 z" />
+                <path d="M86 168 q14 12 28 0 q-6 14 -14 14 q-10 0 -14 -14 z" />
+                {/* kidneys */}
+                <path d="M118 168 q8 0 8 10 q-2 6 -8 4 z" />
+                {/* spine */}
+                <line x1="100" y1="68" x2="100" y2="175" strokeDasharray="3 3" />
+                {/* ribs */}
+                <path d="M70 90 q30 -10 60 0" />
+                <path d="M68 105 q32 -10 64 0" />
+                <path d="M68 120 q32 -10 64 0" />
               </g>
             </svg>
 
@@ -143,12 +147,12 @@ function LabelBody() {
                   disabled={!!filled}
                   className={`absolute -translate-x-1/2 -translate-y-1/2 rounded-full grid place-items-center font-bold text-[10px] transition ${
                     filled
-                      ? "bg-[oklch(0.7_0.18_145)] text-white size-7 shadow-md"
+                      ? "bg-[oklch(0.7_0.18_145)] text-white size-8 shadow-md"
                       : isWrong
-                        ? "bg-destructive text-destructive-foreground size-6 animate-pulse"
+                        ? "bg-destructive text-destructive-foreground size-7 animate-pulse"
                         : picked
-                          ? "bg-primary text-primary-foreground size-6 ring-4 ring-primary/30 animate-pulse"
-                          : "bg-muted size-5 hover:bg-primary/40"
+                          ? "bg-primary text-primary-foreground size-7 ring-4 ring-primary/30 animate-pulse"
+                          : "bg-muted size-6 hover:bg-primary/40"
                   }`}
                   style={{ left: `${s.x}%`, top: `${s.y}%` }}
                   aria-label={filled ? s.label : "Empty spot"}
@@ -162,7 +166,7 @@ function LabelBody() {
 
           {/* Labels */}
           <div>
-            <h2 className="font-bold mb-2 text-center md:text-left">Labels</h2>
+            <h2 className="font-bold mb-2 text-center md:text-left">Body Systems</h2>
             <div className="flex flex-wrap gap-2 justify-center md:justify-start">
               {remaining.length === 0 ? (
                 <p className="text-muted-foreground text-sm">All placed!</p>
@@ -186,7 +190,7 @@ function LabelBody() {
             {allDone && (
               <div className="mt-6 rounded-2xl p-5 text-center bg-card border-2 border-primary">
                 <div className="text-4xl mb-1">🎉</div>
-                <p className="font-bold mb-3">Perfect labeling!</p>
+                <p className="font-bold mb-3">Perfect! You labeled every system!</p>
                 <button onClick={reset} className="px-5 py-2 rounded-full bg-primary text-primary-foreground font-bold">
                   Play again
                 </button>
