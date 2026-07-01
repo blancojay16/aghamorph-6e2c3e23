@@ -52,10 +52,10 @@ function StudentHome() {
       <main className="mx-auto max-w-5xl px-4 py-8">
         <section className="text-center mb-10">
           <h1 className="text-4xl md:text-5xl font-extrabold mb-3">
-            Explore your <span className="text-primary">amazing body</span>!
+            Explore the <span className="text-primary">weather</span>!
           </h1>
           <p className="text-lg text-muted-foreground">
-            Tap a system to watch, learn, and earn badges 🏅
+            Tap a topic to watch, learn, and earn badges 🏅
           </p>
           <div className="mt-4">
             <Link

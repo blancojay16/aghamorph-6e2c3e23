@@ -87,7 +87,7 @@ function MatchingGame() {
       <main className="mx-auto max-w-3xl px-4 py-8">
         <h1 className="text-3xl font-extrabold text-center mb-2">Match it! 🎯</h1>
         <p className="text-center text-muted-foreground mb-6">
-          Which body system does this belong to?
+          Which weather topic does this belong to?
         </p>
 
         {isLoading ? (

@@ -14,7 +14,7 @@ function TeacherDashboard() {
   const navigate = useNavigate();
   const [uploading, setUploading] = useState(false);
   const [title, setTitle] = useState("");
-  const [system, setSystem] = useState<BodySystem>("skeletal");
+  const [system, setSystem] = useState<BodySystem>("air_temperature");
   const [file, setFile] = useState<File | null>(null);
 
   const { data: videos = [] } = useQuery({
