@@ -13,11 +13,13 @@ export interface Progress {
 const empty = (): Progress => ({
   score: 0,
   badges: {
-    skeletal: false,
-    muscular: false,
-    digestive: false,
-    circulatory: false,
-    respiratory: false,
+    air_temperature: false,
+    air_pressure: false,
+    wind_speed: false,
+    wind_direction: false,
+    humidity: false,
+    rainfall: false,
+    cloud_cover: false,
   },
   videosCompleted: [],
 });

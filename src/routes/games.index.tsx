@@ -5,18 +5,18 @@ export const Route = createFileRoute("/games/")({
   head: () => ({
     meta: [
       { title: "Games — Aghamorph" },
-      { name: "description", content: "Play body-systems games: jigsaw, memory, quiz, and label-the-body." },
+      { name: "description", content: "Play weather games: jigsaw, memory, quiz, and match the weather topic." },
     ],
   }),
   component: GamesHub,
 });
 
 const GAMES = [
-  { to: "/games/jigsaw", emoji: "🧩", title: "Jigsaw Puzzle", desc: "Rebuild a body system picture", color: "var(--skeletal)" },
-  { to: "/games/memory", emoji: "🧠", title: "Memory Flip", desc: "Match organ to its job", color: "var(--respiratory)" },
-  { to: "/games/quiz", emoji: "⚡", title: "Quiz Rush", desc: "Beat the clock, build a streak", color: "var(--digestive)" },
-  { to: "/games/label", emoji: "🏷️", title: "Label the Body", desc: "Drop labels on the right spot", color: "var(--muscular)" },
-  { to: "/matching", emoji: "🎯", title: "Match It!", desc: "Pick the right system", color: "var(--circulatory)" },
+  { to: "/games/jigsaw", emoji: "🧩", title: "Jigsaw Puzzle", desc: "Rebuild a weather picture", color: "var(--air-temperature)" },
+  { to: "/games/memory", emoji: "🧠", title: "Memory Flip", desc: "Match the pairs of weather images", color: "var(--humidity)" },
+  { to: "/games/quiz", emoji: "⚡", title: "Quiz Rush", desc: "Beat the clock, build a streak", color: "var(--rainfall)" },
+  { to: "/games/label", emoji: "🏷️", title: "Label the Sky", desc: "Drop labels on the right weather spot", color: "var(--wind-speed)" },
+  { to: "/matching", emoji: "🎯", title: "Match It!", desc: "Pick the right weather topic", color: "var(--cloud-cover)" },
 ] as const;
 
 function GamesHub() {
