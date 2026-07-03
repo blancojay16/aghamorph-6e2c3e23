@@ -229,14 +229,7 @@ export type Database = {
       [_ in never]: never
     }
     Enums: {
-      body_system:
-        | "air_temperature"
-        | "air_pressure"
-        | "wind_speed"
-        | "wind_direction"
-        | "humidity"
-        | "rainfall"
-        | "cloud_cover"
+      body_system: "food_chain" | "herbivore" | "carnivore" | "omnivore"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -364,15 +357,7 @@ export type CompositeTypes<
 export const Constants = {
   public: {
     Enums: {
-      body_system: [
-        "air_temperature",
-        "air_pressure",
-        "wind_speed",
-        "wind_direction",
-        "humidity",
-        "rainfall",
-        "cloud_cover",
-      ],
+      body_system: ["food_chain", "herbivore", "carnivore", "omnivore"],
     },
   },
 } as const

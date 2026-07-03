@@ -4,27 +4,41 @@ import { StudentHeader } from "@/components/student-header";
 import { addScore } from "@/lib/progress";
 
 export const Route = createFileRoute("/games/label")({
-  head: () => ({ meta: [{ title: "Label the Sky — Aghamorph" }] }),
-  component: LabelSky,
+  head: () => ({ meta: [{ title: "Sort the Eaters — Aghamorph" }] }),
+  component: SortTheEaters,
 });
 
-interface Spot {
-  key: string;
-  label: string;
+type Group = "herbivore" | "carnivore" | "omnivore";
+
+interface Animal {
+  name: string;
   emoji: string;
-  x: number; // % within container
-  y: number;
+  group: Group;
 }
 
-// Each spot is a WEATHER TOPIC placed where it best appears in a weather scene.
-const SPOTS: Spot[] = [
-  { key: "air_temperature", label: "Air Temperature", emoji: "🌡️", x: 88, y: 14 },
-  { key: "air_pressure", label: "Air Pressure", emoji: "🧭", x: 12, y: 20 },
-  { key: "cloud_cover", label: "Cloud Cover", emoji: "☁️", x: 50, y: 15 },
-  { key: "wind_direction", label: "Wind Direction", emoji: "🧭", x: 22, y: 45 },
-  { key: "wind_speed", label: "Wind Speed", emoji: "💨", x: 78, y: 42 },
-  { key: "humidity", label: "Humidity", emoji: "💧", x: 30, y: 68 },
-  { key: "rainfall", label: "Rainfall", emoji: "🌧️", x: 60, y: 72 },
+// Grade 4, Philippines-friendly examples
+const ANIMALS: Animal[] = [
+  { name: "Kalabaw (Carabao)", emoji: "🐃", group: "herbivore" },
+  { name: "Kambing (Goat)", emoji: "🐐", group: "herbivore" },
+  { name: "Kuneho (Rabbit)", emoji: "🐇", group: "herbivore" },
+  { name: "Kabayo (Horse)", emoji: "🐎", group: "herbivore" },
+  { name: "Higad (Caterpillar)", emoji: "🐛", group: "herbivore" },
+  { name: "Leon (Lion)", emoji: "🦁", group: "carnivore" },
+  { name: "Buwaya (Crocodile)", emoji: "🐊", group: "carnivore" },
+  { name: "Agila (Eagle)", emoji: "🦅", group: "carnivore" },
+  { name: "Pusa (Cat)", emoji: "🐈", group: "carnivore" },
+  { name: "Pating (Shark)", emoji: "🦈", group: "carnivore" },
+  { name: "Tao (Human)", emoji: "🧑", group: "omnivore" },
+  { name: "Baboy (Pig)", emoji: "🐖", group: "omnivore" },
+  { name: "Manok (Chicken)", emoji: "🐔", group: "omnivore" },
+  { name: "Oso (Bear)", emoji: "🐻", group: "omnivore" },
+  { name: "Unggoy (Monkey)", emoji: "🐒", group: "omnivore" },
+];
+
+const GROUPS: { key: Group; label: string; emoji: string; color: string }[] = [
+  { key: "herbivore", label: "Herbivore", emoji: "🌿", color: "var(--herbivore)" },
+  { key: "carnivore", label: "Carnivore", emoji: "🦁", color: "var(--carnivore)" },
+  { key: "omnivore", label: "Omnivore", emoji: "🐻", color: "var(--omnivore)" },
 ];
 
 function shuffle<T>(a: T[]): T[] {
@@ -36,35 +50,43 @@ function shuffle<T>(a: T[]): T[] {
   return r;
 }
 
-function LabelSky() {
+const ROUND_SIZE = 9;
+
+function SortTheEaters() {
   const [round, setRound] = useState(0);
-  const labels = useMemo(() => shuffle(SPOTS), [round]);
-  const [placed, setPlaced] = useState<Record<string, string>>({});
-  const [picked, setPicked] = useState<string | null>(null);
-  const [wrong, setWrong] = useState<string | null>(null);
-  const [hovered, setHovered] = useState<string | null>(null);
+  const deck = useMemo(() => shuffle(ANIMALS).slice(0, ROUND_SIZE), [round]);
+  const [index, setIndex] = useState(0);
+  const [wrong, setWrong] = useState<Group | null>(null);
+  const [correctCount, setCorrectCount] = useState(0);
+  const [placed, setPlaced] = useState<{ animal: Animal; picked: Group; ok: boolean }[]>([]);
 
-  const allDone = Object.keys(placed).length === SPOTS.length;
+  const current = deck[index];
+  const done = index >= deck.length;
 
-  const placeOn = (spotKey: string) => {
-    if (!picked || placed[spotKey]) return;
-    if (picked === spotKey) {
-      setPlaced((p) => ({ ...p, [spotKey]: picked }));
+  const pick = (g: Group) => {
+    if (!current || wrong) return;
+    const ok = g === current.group;
+    if (ok) {
       addScore(1);
-      setPicked(null);
+      setCorrectCount((c) => c + 1);
+      setPlaced((p) => [...p, { animal: current, picked: g, ok: true }]);
+      setIndex((i) => i + 1);
     } else {
-      setWrong(spotKey);
-      setTimeout(() => setWrong(null), 500);
-      setPicked(null);
+      setWrong(g);
+      setTimeout(() => {
+        setPlaced((p) => [...p, { animal: current, picked: g, ok: false }]);
+        setWrong(null);
+        setIndex((i) => i + 1);
+      }, 550);
     }
   };
 
-  const remaining = labels.filter((l) => !Object.values(placed).includes(l.key));
-
   const reset = () => {
     setRound((r) => r + 1);
-    setPlaced({});
-    setPicked(null);
+    setIndex(0);
+    setWrong(null);
+    setCorrectCount(0);
+    setPlaced([]);
   };
 
   return (
@@ -73,129 +95,71 @@ function LabelSky() {
       <main className="mx-auto max-w-3xl px-4 py-6">
         <div className="flex items-center gap-3 mb-4">
           <Link to="/games" className="size-10 grid place-items-center rounded-full bg-muted">←</Link>
-          <h1 className="text-2xl font-extrabold flex-1">Label the Sky 🏷️</h1>
+          <h1 className="text-2xl font-extrabold flex-1">Sort the Eaters 🏷️</h1>
           <span className="text-xs text-muted-foreground">
-            {Object.keys(placed).length}/{SPOTS.length}
+            {Math.min(index, deck.length)}/{deck.length}
           </span>
         </div>
 
         <p className="text-center text-sm text-muted-foreground mb-4">
-          Tap a weather topic, then tap the spot in the sky where it belongs.
+          Look at the animal, then tap <b>Herbivore</b>, <b>Carnivore</b>, or <b>Omnivore</b>.
         </p>
 
-        <div className="grid md:grid-cols-2 gap-4">
-          {/* Weather scene */}
-          <div className="relative mx-auto w-full max-w-[360px] aspect-[4/5] rounded-3xl border-2 border-border overflow-hidden bg-gradient-to-b from-[oklch(0.85_0.08_230)] via-[oklch(0.9_0.05_220)] to-[oklch(0.7_0.1_150)]">
-            <svg viewBox="0 0 200 260" className="absolute inset-0 w-full h-full">
-              {/* Sun */}
-              <circle cx="176" cy="34" r="16" fill="oklch(0.85 0.18 80)" opacity="0.9" />
-              <g stroke="oklch(0.85 0.18 80)" strokeWidth="2" opacity="0.7">
-                <line x1="176" y1="10" x2="176" y2="4" />
-                <line x1="176" y1="58" x2="176" y2="64" />
-                <line x1="152" y1="34" x2="146" y2="34" />
-                <line x1="200" y1="34" x2="206" y2="34" />
-              </g>
-              {/* Clouds */}
-              <g fill="white" opacity="0.9">
-                <ellipse cx="90" cy="38" rx="26" ry="10" />
-                <ellipse cx="108" cy="32" rx="20" ry="9" />
-                <ellipse cx="76" cy="34" rx="16" ry="8" />
-                <ellipse cx="40" cy="70" rx="18" ry="7" opacity="0.7" />
-              </g>
-              {/* Wind swirls (left) */}
-              <g fill="none" stroke="oklch(0.5 0.08 220)" strokeWidth="1.5" opacity="0.6">
-                <path d="M20 110 q30 -8 55 0 q-10 6 -20 4" />
-                <path d="M15 128 q40 -8 70 0 q-14 6 -24 4" />
-              </g>
-              {/* Wind gust (right) */}
-              <g fill="none" stroke="oklch(0.5 0.08 220)" strokeWidth="1.8" opacity="0.7">
-                <path d="M180 100 q-30 -6 -50 4" />
-                <path d="M185 118 q-40 -6 -60 6" />
-              </g>
-              {/* Rain drops */}
-              <g fill="oklch(0.55 0.18 250)" opacity="0.8">
-                {[0,1,2,3,4,5,6,7].map((i) => (
-                  <ellipse key={i} cx={90 + i * 8} cy={200 + (i % 2) * 8} rx="1.6" ry="4" />
-                ))}
-              </g>
-              {/* Ground */}
-              <path d="M0 240 Q100 224 200 240 L200 260 L0 260 Z" fill="oklch(0.6 0.14 145)" opacity="0.7" />
-              {/* Thermometer hint */}
-              <g opacity="0.5">
-                <rect x="172" y="60" width="6" height="24" rx="3" fill="oklch(0.6 0.2 25)" />
-                <circle cx="175" cy="88" r="5" fill="oklch(0.6 0.2 25)" />
-              </g>
-              {/* Barometer hint */}
-              <g opacity="0.4">
-                <circle cx="24" cy="60" r="10" fill="none" stroke="oklch(0.4 0.06 260)" strokeWidth="1.5" />
-                <line x1="24" y1="60" x2="30" y2="55" stroke="oklch(0.4 0.06 260)" strokeWidth="1.5" />
-              </g>
-            </svg>
-
-            {SPOTS.map((s) => {
-              const filled = placed[s.key];
-              const isWrong = wrong === s.key;
-              const isHover = hovered === s.key;
-              return (
-                <button
-                  key={s.key}
-                  onClick={() => placeOn(s.key)}
-                  onMouseEnter={() => setHovered(s.key)}
-                  onMouseLeave={() => setHovered(null)}
-                  disabled={!!filled}
-                  className={`absolute -translate-x-1/2 -translate-y-1/2 rounded-full grid place-items-center font-bold text-[10px] transition ${
-                    filled
-                      ? "bg-[oklch(0.7_0.18_145)] text-white size-8 shadow-md"
-                      : isWrong
-                        ? "bg-destructive text-destructive-foreground size-7 animate-pulse"
-                        : picked
-                          ? "bg-primary text-primary-foreground size-7 ring-4 ring-primary/30 animate-pulse"
-                          : "bg-white/80 size-6 hover:bg-primary/40"
-                  }`}
-                  style={{ left: `${s.x}%`, top: `${s.y}%` }}
-                  aria-label={filled ? s.label : "Empty spot"}
-                  title={filled ? s.label : ""}
-                >
-                  {filled ? s.emoji : isHover ? "•" : ""}
-                </button>
-              );
-            })}
-          </div>
-
-          {/* Labels */}
-          <div>
-            <h2 className="font-bold mb-2 text-center md:text-left">Weather Topics</h2>
-            <div className="flex flex-wrap gap-2 justify-center md:justify-start">
-              {remaining.length === 0 ? (
-                <p className="text-muted-foreground text-sm">All placed!</p>
-              ) : (
-                remaining.map((l) => (
-                  <button
-                    key={l.key}
-                    onClick={() => setPicked(picked === l.key ? null : l.key)}
-                    className={`px-3 py-1.5 rounded-full border-2 font-semibold text-sm transition ${
-                      picked === l.key
-                        ? "bg-primary text-primary-foreground border-primary scale-105 shadow-lg"
-                        : "bg-card border-border hover:scale-105 hover:border-primary/60"
-                    }`}
-                  >
-                    {l.emoji} {l.label}
-                  </button>
-                ))
-              )}
+        {!done ? (
+          <>
+            <div className="mx-auto w-full max-w-sm aspect-square rounded-3xl border-2 border-border bg-card grid place-items-center mb-6 shadow-sm">
+              <div className="text-center px-4">
+                <div className="text-[8rem] leading-none mb-2">{current.emoji}</div>
+                <p className="text-xl font-bold">{current.name}</p>
+              </div>
             </div>
 
-            {allDone && (
-              <div className="mt-6 rounded-2xl p-5 text-center bg-card border-2 border-primary">
-                <div className="text-4xl mb-1">🎉</div>
-                <p className="font-bold mb-3">Perfect! You labeled every weather topic!</p>
-                <button onClick={reset} className="px-5 py-2 rounded-full bg-primary text-primary-foreground font-bold">
-                  Play again
-                </button>
-              </div>
-            )}
+            <div className="grid grid-cols-3 gap-3">
+              {GROUPS.map((g) => {
+                const isWrong = wrong === g.key;
+                return (
+                  <button
+                    key={g.key}
+                    onClick={() => pick(g.key)}
+                    disabled={!!wrong}
+                    className={`rounded-2xl border-2 p-4 font-bold text-center transition ${
+                      isWrong
+                        ? "bg-destructive text-destructive-foreground border-destructive animate-pulse"
+                        : "bg-card hover:scale-105 hover:shadow-md"
+                    }`}
+                    style={!isWrong ? { borderColor: g.color } : undefined}
+                  >
+                    <div className="text-3xl mb-1">{g.emoji}</div>
+                    <div className="text-sm">{g.label}</div>
+                  </button>
+                );
+              })}
+            </div>
+          </>
+        ) : (
+          <div className="rounded-3xl p-6 text-center bg-card border-2 border-primary">
+            <div className="text-5xl mb-2">🎉</div>
+            <h2 className="text-2xl font-bold mb-1">Round done!</h2>
+            <p className="mb-4">
+              You got <span className="font-bold text-primary">{correctCount}/{deck.length}</span> correct.
+            </p>
+            <ul className="text-left text-sm space-y-1 mb-4 max-h-56 overflow-auto">
+              {placed.map((p, i) => (
+                <li key={i} className="flex items-center gap-2">
+                  <span>{p.ok ? "✅" : "❌"}</span>
+                  <span className="text-lg">{p.animal.emoji}</span>
+                  <span className="font-semibold">{p.animal.name}</span>
+                  <span className="text-muted-foreground ml-auto">
+                    {p.ok ? p.animal.group : `${p.picked} → ${p.animal.group}`}
+                  </span>
+                </li>
+              ))}
+            </ul>
+            <button onClick={reset} className="px-5 py-2 rounded-full bg-primary text-primary-foreground font-bold">
+              Play again
+            </button>
           </div>
-        </div>
+        )}
       </main>
     </div>
   );

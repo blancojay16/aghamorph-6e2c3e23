@@ -5,18 +5,18 @@ export const Route = createFileRoute("/games/")({
   head: () => ({
     meta: [
       { title: "Games — Aghamorph" },
-      { name: "description", content: "Play weather games: jigsaw, memory, quiz, and match the weather topic." },
+      { name: "description", content: "Play food chain games: jigsaw, memory, quiz, and sort the animals." },
     ],
   }),
   component: GamesHub,
 });
 
 const GAMES = [
-  { to: "/games/jigsaw", emoji: "🧩", title: "Jigsaw Puzzle", desc: "Rebuild a weather picture", color: "var(--air-temperature)" },
-  { to: "/games/memory", emoji: "🧠", title: "Memory Flip", desc: "Match the pairs of weather images", color: "var(--humidity)" },
-  { to: "/games/quiz", emoji: "⚡", title: "Quiz Rush", desc: "Beat the clock, build a streak", color: "var(--rainfall)" },
-  { to: "/games/label", emoji: "🏷️", title: "Label the Sky", desc: "Drop labels on the right weather spot", color: "var(--wind-speed)" },
-  { to: "/matching", emoji: "🎯", title: "Match It!", desc: "Pick the right weather topic", color: "var(--cloud-cover)" },
+  { to: "/games/jigsaw", emoji: "🧩", title: "Jigsaw Puzzle", desc: "Rebuild a food chain picture", color: "var(--food-chain)" },
+  { to: "/games/memory", emoji: "🧠", title: "Memory Flip", desc: "Match the pairs of animals & plants", color: "var(--herbivore)" },
+  { to: "/games/quiz", emoji: "⚡", title: "Quiz Rush", desc: "Beat the clock, build a streak", color: "var(--carnivore)" },
+  { to: "/games/label", emoji: "🏷️", title: "Sort the Eaters", desc: "Sort each animal as herbivore, carnivore, or omnivore", color: "var(--omnivore)" },
+  { to: "/matching", emoji: "🎯", title: "Match It!", desc: "Pick the right food chain group", color: "var(--food-chain)" },
 ] as const;
 
 function GamesHub() {

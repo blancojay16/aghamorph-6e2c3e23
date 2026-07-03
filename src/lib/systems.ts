@@ -1,11 +1,8 @@
 export type BodySystem =
-  | "air_temperature"
-  | "air_pressure"
-  | "wind_speed"
-  | "wind_direction"
-  | "humidity"
-  | "rainfall"
-  | "cloud_cover";
+  | "food_chain"
+  | "herbivore"
+  | "carnivore"
+  | "omnivore";
 
 export const SYSTEMS: {
   key: BodySystem;
@@ -14,13 +11,10 @@ export const SYSTEMS: {
   tagline: string;
   colorVar: string;
 }[] = [
-  { key: "air_temperature", label: "Air Temperature", emoji: "🌡️", tagline: "How hot or cold the air is", colorVar: "var(--air-temperature)" },
-  { key: "air_pressure", label: "Air Pressure", emoji: "🧭", tagline: "How heavy the air feels", colorVar: "var(--air-pressure)" },
-  { key: "wind_speed", label: "Wind Speed", emoji: "💨", tagline: "How fast the wind blows", colorVar: "var(--wind-speed)" },
-  { key: "wind_direction", label: "Wind Direction", emoji: "🧭", tagline: "Where the wind comes from", colorVar: "var(--wind-direction)" },
-  { key: "humidity", label: "Humidity", emoji: "💧", tagline: "How much moisture is in the air", colorVar: "var(--humidity)" },
-  { key: "rainfall", label: "Rainfall", emoji: "🌧️", tagline: "How much rain falls", colorVar: "var(--rainfall)" },
-  { key: "cloud_cover", label: "Cloud Cover", emoji: "☁️", tagline: "How much sky is filled with clouds", colorVar: "var(--cloud-cover)" },
+  { key: "food_chain", label: "Food Chain", emoji: "🔗", tagline: "How living things depend on each other for food", colorVar: "var(--food-chain)" },
+  { key: "herbivore", label: "Herbivore", emoji: "🌿", tagline: "Animals that eat only plants", colorVar: "var(--herbivore)" },
+  { key: "carnivore", label: "Carnivore", emoji: "🦁", tagline: "Animals that eat other animals", colorVar: "var(--carnivore)" },
+  { key: "omnivore", label: "Omnivore", emoji: "🐻", tagline: "Animals that eat both plants and animals", colorVar: "var(--omnivore)" },
 ];
 
 export const systemMeta = (k: BodySystem) =>

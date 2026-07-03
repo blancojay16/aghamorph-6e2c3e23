@@ -32,13 +32,10 @@
   --color-input: var(--input);
   --color-ring: var(--ring);
 
-  --color-air-temperature: var(--air-temperature);
-  --color-air-pressure: var(--air-pressure);
-  --color-wind-speed: var(--wind-speed);
-  --color-wind-direction: var(--wind-direction);
-  --color-humidity: var(--humidity);
-  --color-rainfall: var(--rainfall);
-  --color-cloud-cover: var(--cloud-cover);
+  --color-food-chain: var(--food-chain);
+  --color-herbivore: var(--herbivore);
+  --color-carnivore: var(--carnivore);
+  --color-omnivore: var(--omnivore);
 
   --font-display: "Fredoka", "Nunito", system-ui, sans-serif;
 }
@@ -76,14 +73,11 @@
   --input: oklch(0.92 0.02 240);
   --ring: oklch(0.62 0.16 195);
 
-  /* Weather topic colors */
-  --air-temperature: oklch(0.68 0.2 40);   /* warm sunny orange */
-  --air-pressure: oklch(0.6 0.12 280);     /* barometric purple */
-  --wind-speed: oklch(0.72 0.14 200);      /* breezy teal */
-  --wind-direction: oklch(0.66 0.16 150);  /* compass green */
-  --humidity: oklch(0.7 0.14 220);         /* misty blue */
-  --rainfall: oklch(0.55 0.18 250);        /* deep rain blue */
-  --cloud-cover: oklch(0.78 0.03 260);     /* soft cloud gray */
+  /* Food chain topic colors */
+  --food-chain: oklch(0.62 0.16 145);   /* nature green */
+  --herbivore: oklch(0.72 0.18 130);    /* leafy green */
+  --carnivore: oklch(0.6 0.2 25);       /* predator red-orange */
+  --omnivore: oklch(0.65 0.14 60);      /* earthy amber */
 }
 
 .dark {
