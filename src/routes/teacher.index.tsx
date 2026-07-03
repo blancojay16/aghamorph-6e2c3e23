@@ -14,7 +14,7 @@ function TeacherDashboard() {
   const navigate = useNavigate();
   const [uploading, setUploading] = useState(false);
   const [title, setTitle] = useState("");
-  const [system, setSystem] = useState<BodySystem>("air_temperature");
+  const [system, setSystem] = useState<BodySystem>("food_chain");
   const [file, setFile] = useState<File | null>(null);
 
   const { data: videos = [] } = useQuery({
@@ -88,7 +88,7 @@ function TeacherDashboard() {
                   </div>
                   <div className="flex-1 min-w-0">
                     <p className="font-bold truncate">{v.title}</p>
-                    <p className="text-xs text-muted-foreground">{meta.label} system</p>
+                    <p className="text-xs text-muted-foreground">{meta.label}</p>
                   </div>
                   <Link
                     to="/teacher/video/$videoId"

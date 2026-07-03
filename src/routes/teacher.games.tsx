@@ -14,7 +14,7 @@ type GameKey = "jigsaw" | "memory" | "matching";
 const GAMES: { key: GameKey; label: string; emoji: string; hint: string }[] = [
   { key: "jigsaw", label: "Jigsaw Puzzle", emoji: "🧩", hint: "Square images work best. They'll be cut into a 3×3 puzzle." },
   { key: "memory", label: "Memory Flip", emoji: "🧠", hint: "Upload any images — the game will duplicate each one so students match identical pairs." },
-  { key: "matching", label: "Match It!", emoji: "🎯", hint: "Students guess the weather topic for each image." },
+  { key: "matching", label: "Match It!", emoji: "🎯", hint: "Students guess the food chain group for each image." },
 ];
 
 function TeacherGames() {
@@ -54,7 +54,7 @@ function TeacherGames() {
 
 function GamePanel({ game, hint }: { game: GameKey; hint: string }) {
   const qc = useQueryClient();
-  const [system, setSystem] = useState<BodySystem>("air_temperature");
+  const [system, setSystem] = useState<BodySystem>("food_chain");
   const [label, setLabel] = useState("");
   const [file, setFile] = useState<File | null>(null);
   const [uploading, setUploading] = useState(false);
@@ -232,7 +232,7 @@ function MemoryPanel({ hint }: { hint: string }) {
         if (upErr) throw upErr;
         const { error: insErr } = await supabase
           .from("game_assets")
-          .insert({ system: "air_temperature", label: file.name, file_path: path, game: "memory" } as any);
+          .insert({ system: "food_chain", label: file.name, file_path: path, game: "memory" } as any);
         if (insErr) throw insErr;
       }
       toast.success(`${files.length} image${files.length === 1 ? "" : "s"} uploaded!`);
