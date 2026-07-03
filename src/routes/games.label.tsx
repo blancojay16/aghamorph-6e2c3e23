@@ -37,8 +37,8 @@ const ANIMALS: Animal[] = [
 
 const GROUPS: { key: Group; label: string; emoji: string; color: string }[] = [
   { key: "herbivore", label: "Herbivore", emoji: "🌿", color: "var(--herbivore)" },
-  { key: "carnivore", label: "Carnivore", emoji: "🦁", color: "var(--carnivore)" },
-  { key: "omnivore", label: "Omnivore", emoji: "🐻", color: "var(--omnivore)" },
+  { key: "carnivore", label: "Carnivore", emoji: "🍖", color: "var(--carnivore)" },
+  { key: "omnivore", label: "Omnivore", emoji: "🍽️", color: "var(--omnivore)" },
 ];
 
 function shuffle<T>(a: T[]): T[] {
