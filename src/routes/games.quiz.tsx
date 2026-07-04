@@ -2,6 +2,7 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { StudentHeader } from "@/components/student-header";
 import { addScore } from "@/lib/progress";
+import { awardGameScore } from "@/lib/game-scores";
 
 export const Route = createFileRoute("/games/quiz")({
   head: () => ({ meta: [{ title: "Quiz Rush — Aghamorph" }] }),
@@ -86,6 +87,7 @@ function Quiz() {
         return n;
       });
       addScore(1);
+      void awardGameScore("quiz", 1);
     } else {
       setStreak(0);
     }
