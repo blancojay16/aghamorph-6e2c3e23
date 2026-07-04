@@ -79,6 +79,41 @@ export type Database = {
         }
         Relationships: []
       }
+      group_game_scores: {
+        Row: {
+          created_at: string
+          game: string
+          group_id: string
+          id: string
+          score: number
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          game: string
+          group_id: string
+          id?: string
+          score?: number
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          game?: string
+          group_id?: string
+          id?: string
+          score?: number
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "group_game_scores_group_id_fkey"
+            columns: ["group_id"]
+            isOneToOne: false
+            referencedRelation: "students"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       quiz_questions: {
         Row: {
           correct_index: number

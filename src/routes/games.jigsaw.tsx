@@ -3,6 +3,7 @@ import { useEffect, useMemo, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { StudentHeader } from "@/components/student-header";
 import { addScore } from "@/lib/progress";
+import { awardGameScore } from "@/lib/game-scores";
 import { supabase } from "@/integrations/supabase/client";
 import { SYSTEMS, systemMeta, type BodySystem } from "@/lib/systems";
 
@@ -70,6 +71,7 @@ function Jigsaw() {
     if (!solved && tiles.every((v, i) => v === i)) {
       setSolved(true);
       addScore(8);
+      void awardGameScore("jigsaw", 8);
     }
   }, [tiles, solved, puzzle]);
 

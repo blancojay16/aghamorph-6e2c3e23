@@ -17,6 +17,7 @@ import { Route as IndexRouteImport } from './routes/index'
 import { Route as TeacherIndexRouteImport } from './routes/teacher.index'
 import { Route as GamesIndexRouteImport } from './routes/games.index'
 import { Route as TeacherStudentsRouteImport } from './routes/teacher.students'
+import { Route as TeacherRankingsRouteImport } from './routes/teacher.rankings'
 import { Route as TeacherGamesRouteImport } from './routes/teacher.games'
 import { Route as PlayVideoIdRouteImport } from './routes/play.$videoId'
 import { Route as GamesQuizRouteImport } from './routes/games.quiz'
@@ -24,6 +25,7 @@ import { Route as GamesMemoryRouteImport } from './routes/games.memory'
 import { Route as GamesLabelRouteImport } from './routes/games.label'
 import { Route as GamesJigsawRouteImport } from './routes/games.jigsaw'
 import { Route as TeacherVideoVideoIdRouteImport } from './routes/teacher.video.$videoId'
+import { Route as TeacherPendingLocalIdRouteImport } from './routes/teacher.pending.$localId'
 
 const TeacherRoute = TeacherRouteImport.update({
   id: '/teacher',
@@ -65,6 +67,11 @@ const TeacherStudentsRoute = TeacherStudentsRouteImport.update({
   path: '/students',
   getParentRoute: () => TeacherRoute,
 } as any)
+const TeacherRankingsRoute = TeacherRankingsRouteImport.update({
+  id: '/rankings',
+  path: '/rankings',
+  getParentRoute: () => TeacherRoute,
+} as any)
 const TeacherGamesRoute = TeacherGamesRouteImport.update({
   id: '/games',
   path: '/games',
@@ -100,6 +107,11 @@ const TeacherVideoVideoIdRoute = TeacherVideoVideoIdRouteImport.update({
   path: '/video/$videoId',
   getParentRoute: () => TeacherRoute,
 } as any)
+const TeacherPendingLocalIdRoute = TeacherPendingLocalIdRouteImport.update({
+  id: '/pending/$localId',
+  path: '/pending/$localId',
+  getParentRoute: () => TeacherRoute,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -113,9 +125,11 @@ export interface FileRoutesByFullPath {
   '/games/quiz': typeof GamesQuizRoute
   '/play/$videoId': typeof PlayVideoIdRoute
   '/teacher/games': typeof TeacherGamesRoute
+  '/teacher/rankings': typeof TeacherRankingsRoute
   '/teacher/students': typeof TeacherStudentsRoute
   '/games/': typeof GamesIndexRoute
   '/teacher/': typeof TeacherIndexRoute
+  '/teacher/pending/$localId': typeof TeacherPendingLocalIdRoute
   '/teacher/video/$videoId': typeof TeacherVideoVideoIdRoute
 }
 export interface FileRoutesByTo {
@@ -129,9 +143,11 @@ export interface FileRoutesByTo {
   '/games/quiz': typeof GamesQuizRoute
   '/play/$videoId': typeof PlayVideoIdRoute
   '/teacher/games': typeof TeacherGamesRoute
+  '/teacher/rankings': typeof TeacherRankingsRoute
   '/teacher/students': typeof TeacherStudentsRoute
   '/games': typeof GamesIndexRoute
   '/teacher': typeof TeacherIndexRoute
+  '/teacher/pending/$localId': typeof TeacherPendingLocalIdRoute
   '/teacher/video/$videoId': typeof TeacherVideoVideoIdRoute
 }
 export interface FileRoutesById {
@@ -147,9 +163,11 @@ export interface FileRoutesById {
   '/games/quiz': typeof GamesQuizRoute
   '/play/$videoId': typeof PlayVideoIdRoute
   '/teacher/games': typeof TeacherGamesRoute
+  '/teacher/rankings': typeof TeacherRankingsRoute
   '/teacher/students': typeof TeacherStudentsRoute
   '/games/': typeof GamesIndexRoute
   '/teacher/': typeof TeacherIndexRoute
+  '/teacher/pending/$localId': typeof TeacherPendingLocalIdRoute
   '/teacher/video/$videoId': typeof TeacherVideoVideoIdRoute
 }
 export interface FileRouteTypes {
@@ -166,9 +184,11 @@ export interface FileRouteTypes {
     | '/games/quiz'
     | '/play/$videoId'
     | '/teacher/games'
+    | '/teacher/rankings'
     | '/teacher/students'
     | '/games/'
     | '/teacher/'
+    | '/teacher/pending/$localId'
     | '/teacher/video/$videoId'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -182,9 +202,11 @@ export interface FileRouteTypes {
     | '/games/quiz'
     | '/play/$videoId'
     | '/teacher/games'
+    | '/teacher/rankings'
     | '/teacher/students'
     | '/games'
     | '/teacher'
+    | '/teacher/pending/$localId'
     | '/teacher/video/$videoId'
   id:
     | '__root__'
@@ -199,9 +221,11 @@ export interface FileRouteTypes {
     | '/games/quiz'
     | '/play/$videoId'
     | '/teacher/games'
+    | '/teacher/rankings'
     | '/teacher/students'
     | '/games/'
     | '/teacher/'
+    | '/teacher/pending/$localId'
     | '/teacher/video/$videoId'
   fileRoutesById: FileRoutesById
 }
@@ -277,6 +301,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof TeacherStudentsRouteImport
       parentRoute: typeof TeacherRoute
     }
+    '/teacher/rankings': {
+      id: '/teacher/rankings'
+      path: '/rankings'
+      fullPath: '/teacher/rankings'
+      preLoaderRoute: typeof TeacherRankingsRouteImport
+      parentRoute: typeof TeacherRoute
+    }
     '/teacher/games': {
       id: '/teacher/games'
       path: '/games'
@@ -326,20 +357,31 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof TeacherVideoVideoIdRouteImport
       parentRoute: typeof TeacherRoute
     }
+    '/teacher/pending/$localId': {
+      id: '/teacher/pending/$localId'
+      path: '/pending/$localId'
+      fullPath: '/teacher/pending/$localId'
+      preLoaderRoute: typeof TeacherPendingLocalIdRouteImport
+      parentRoute: typeof TeacherRoute
+    }
   }
 }
 
 interface TeacherRouteChildren {
   TeacherGamesRoute: typeof TeacherGamesRoute
+  TeacherRankingsRoute: typeof TeacherRankingsRoute
   TeacherStudentsRoute: typeof TeacherStudentsRoute
   TeacherIndexRoute: typeof TeacherIndexRoute
+  TeacherPendingLocalIdRoute: typeof TeacherPendingLocalIdRoute
   TeacherVideoVideoIdRoute: typeof TeacherVideoVideoIdRoute
 }
 
 const TeacherRouteChildren: TeacherRouteChildren = {
   TeacherGamesRoute: TeacherGamesRoute,
+  TeacherRankingsRoute: TeacherRankingsRoute,
   TeacherStudentsRoute: TeacherStudentsRoute,
   TeacherIndexRoute: TeacherIndexRoute,
+  TeacherPendingLocalIdRoute: TeacherPendingLocalIdRoute,
   TeacherVideoVideoIdRoute: TeacherVideoVideoIdRoute,
 }
 
@@ -362,13 +404,3 @@ const rootRouteChildren: RootRouteChildren = {
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
-
-import type { getRouter } from './router.tsx'
-import type { startInstance } from './start.ts'
-declare module '@tanstack/react-start' {
-  interface Register {
-    ssr: true
-    router: Awaited<ReturnType<typeof getRouter>>
-    config: Awaited<ReturnType<typeof startInstance.getOptions>>
-  }
-}

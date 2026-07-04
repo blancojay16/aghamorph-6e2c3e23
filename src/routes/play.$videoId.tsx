@@ -7,6 +7,7 @@ import { StudentHeader } from "@/components/student-header";
 import { systemMeta, type BodySystem } from "@/lib/systems";
 import { addScore, markVideoComplete, awardBadge } from "@/lib/progress";
 import { loadStudent } from "@/lib/student";
+import { cacheRemoteVideo, getCachedVideoBlob } from "@/lib/offline-sync";
 
 export const Route = createFileRoute("/play/$videoId")({
   component: PlayPage,
@@ -59,6 +60,38 @@ function PlayPage() {
       };
     },
   });
+
+  // Prefer a cached blob if we have one, else use the remote URL and cache it.
+  const [srcUrl, setSrcUrl] = useState<string | null>(null);
+  useEffect(() => {
+    let objectUrl: string | null = null;
+    let cancelled = false;
+    (async () => {
+      const cached = await getCachedVideoBlob(videoId);
+      if (cached && !cancelled) {
+        objectUrl = URL.createObjectURL(cached);
+        setSrcUrl(objectUrl);
+        return;
+      }
+      if (data?.url && !cancelled) {
+        setSrcUrl(data.url);
+        // Try to cache for offline playback (best effort)
+        try {
+          const res = await fetch(data.url);
+          if (res.ok) {
+            const blob = await res.blob();
+            await cacheRemoteVideo(videoId, blob, blob.type || "video/mp4");
+          }
+        } catch {
+          /* offline or CORS — ignore */
+        }
+      }
+    })();
+    return () => {
+      cancelled = true;
+      if (objectUrl) URL.revokeObjectURL(objectUrl);
+    };
+  }, [videoId, data?.url]);
 
   const videoRef = useRef<HTMLVideoElement>(null);
   const wrapperRef = useRef<HTMLDivElement>(null);
@@ -160,8 +193,6 @@ function PlayPage() {
     }
   };
 
-  // When an overlay needs to show but the <video> is in native fullscreen,
-  // swap fullscreen to the wrapper so the overlay is visible.
   useEffect(() => {
     const needsOverlay = !!activeCheckpoint || showQuiz;
     if (!needsOverlay) return;
@@ -201,19 +232,21 @@ function PlayPage() {
               : "aspect-video w-full"
           }`}
         >
-          <video
-            ref={videoRef}
-            src={data.url}
-            controls
-            playsInline
-            onLoadedMetadata={(e) => {
-              const v = e.currentTarget;
-              if (v.videoWidth && v.videoHeight) {
-                setOrientation(v.videoHeight > v.videoWidth ? "portrait" : "landscape");
-              }
-            }}
-            className={`w-full h-full ${orientation === "portrait" ? "object-contain" : "object-contain"}`}
-          />
+          {srcUrl && (
+            <video
+              ref={videoRef}
+              src={srcUrl}
+              controls
+              playsInline
+              onLoadedMetadata={(e) => {
+                const v = e.currentTarget;
+                if (v.videoWidth && v.videoHeight) {
+                  setOrientation(v.videoHeight > v.videoWidth ? "portrait" : "landscape");
+                }
+              }}
+              className={`w-full h-full ${orientation === "portrait" ? "object-contain" : "object-contain"}`}
+            />
+          )}
           {activeCheckpoint && (
             <CheckpointSheet
               cp={activeCheckpoint}
@@ -283,9 +316,7 @@ function CheckpointSheet({
   return (
     <div className="fixed inset-0 z-50 bg-black/70 backdrop-blur-sm grid place-items-center p-4 animate-in fade-in overflow-y-auto">
       <div className="bg-card text-card-foreground rounded-3xl p-4 sm:p-6 max-w-lg w-full shadow-2xl my-auto">
-        <p className="text-xs uppercase tracking-wider text-primary font-bold mb-2">
-          Quick check
-        </p>
+        <p className="text-xs uppercase tracking-wider text-primary font-bold mb-2">Quick check</p>
         <h2 className="text-lg sm:text-xl font-bold mb-3 sm:mb-4">{cp.prompt}</h2>
         <div className="space-y-2">
           {cp.options.map((opt, i) => {

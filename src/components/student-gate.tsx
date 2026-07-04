@@ -1,13 +1,13 @@
 import { useEffect, useState } from "react";
-import { clearStudent, DuplicateNameError, loadStudent, registerStudent, type StudentRecord } from "@/lib/student";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { clearStudent, loadStudent, saveStudent, type StudentRecord } from "@/lib/student";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 
 export function StudentGate({ children }: { children: React.ReactNode }) {
   const [student, setStudent] = useState<StudentRecord | null>(null);
   const [ready, setReady] = useState(false);
-  const [name, setName] = useState("");
-  const [submitting, setSubmitting] = useState(false);
+  const qc = useQueryClient();
 
   useEffect(() => {
     setStudent(loadStudent());
@@ -17,8 +17,7 @@ export function StudentGate({ children }: { children: React.ReactNode }) {
     return () => window.removeEventListener("aghamorph:student", u);
   }, []);
 
-  // If the teacher deletes this student from the dashboard, reset locally so
-  // they're prompted for a new name.
+  // If the teacher deletes this group, reset locally.
   useEffect(() => {
     if (!student) return;
     let cancelled = false;
@@ -31,7 +30,7 @@ export function StudentGate({ children }: { children: React.ReactNode }) {
       if (cancelled) return;
       if (!error && !data) {
         clearStudent();
-        toast.info("Your teacher reset your profile. Please enter your name again.");
+        toast.info("Your teacher reset this group. Please pick your group again.");
       }
     };
     check();
@@ -42,54 +41,57 @@ export function StudentGate({ children }: { children: React.ReactNode }) {
     };
   }, [student]);
 
-  const submit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!name.trim()) return;
-    setSubmitting(true);
-    try {
-      const rec = await registerStudent(name);
-      setStudent(rec);
-    } catch (err) {
-      if (err instanceof DuplicateNameError) {
-        toast.error("Name already exists", {
-          description: `"${err.matched[0].name}" is already registered. Please ask your teacher to remove the existing student before signing up again.`,
-          duration: 8000,
-        });
-      } else {
-        toast.error((err as Error).message);
-      }
-    } finally {
-      setSubmitting(false);
-    }
-  };
+  const { data: groups = [], isLoading } = useQuery({
+    queryKey: ["group-list"],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("students")
+        .select("id,name,created_at")
+        .order("created_at", { ascending: true });
+      if (error) throw error;
+      return data;
+    },
+    enabled: ready && !student,
+    refetchInterval: 10_000,
+  });
 
   if (!ready) return null;
   if (student) return <>{children}</>;
 
+  const pick = (g: { id: string; name: string }) => {
+    saveStudent({ id: g.id, name: g.name });
+    setStudent({ id: g.id, name: g.name });
+    qc.invalidateQueries({ queryKey: ["group-list"] });
+  };
+
   return (
     <div className="min-h-screen grid place-items-center px-4 bg-gradient-to-br from-background to-secondary/40">
-      <form onSubmit={submit} className="w-full max-w-sm bg-card rounded-3xl p-6 border shadow-xl text-center">
-        <div className="text-5xl mb-2">👋</div>
-        <h1 className="text-2xl font-extrabold mb-1">What's your name?</h1>
+      <div className="w-full max-w-md bg-card rounded-3xl p-6 border shadow-xl text-center">
+        <div className="text-5xl mb-2">👥</div>
+        <h1 className="text-2xl font-extrabold mb-1">Pick your group</h1>
         <p className="text-sm text-muted-foreground mb-5">
-          So your teacher can see your score.
+          Tap the group number your teacher assigned you.
         </p>
-        <input
-          autoFocus
-          value={name}
-          onChange={(e) => setName(e.target.value)}
-          maxLength={80}
-          placeholder="Your name"
-          className="w-full px-4 py-3 rounded-xl border-2 bg-background focus:border-primary outline-none text-center text-lg"
-        />
-        <button
-          type="submit"
-          disabled={!name.trim() || submitting}
-          className="w-full mt-4 py-3 rounded-xl bg-primary text-primary-foreground font-bold disabled:opacity-60"
-        >
-          {submitting ? "Saving…" : "Start learning"}
-        </button>
-      </form>
+        {isLoading ? (
+          <p className="text-sm text-muted-foreground">Loading groups…</p>
+        ) : groups.length === 0 ? (
+          <p className="text-sm text-muted-foreground">
+            No groups yet. Ask your teacher to add groups from the Teacher tab.
+          </p>
+        ) : (
+          <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
+            {groups.map((g) => (
+              <button
+                key={g.id}
+                onClick={() => pick(g)}
+                className="rounded-2xl border-2 border-primary/40 bg-background hover:bg-primary hover:text-primary-foreground font-bold py-4 px-2 text-base transition"
+              >
+                {g.name}
+              </button>
+            ))}
+          </div>
+        )}
+      </div>
     </div>
   );
 }

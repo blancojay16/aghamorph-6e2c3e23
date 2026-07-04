@@ -3,6 +3,7 @@ import { useEffect, useMemo, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { StudentHeader } from "@/components/student-header";
 import { addScore } from "@/lib/progress";
+import { awardGameScore } from "@/lib/game-scores";
 import { supabase } from "@/integrations/supabase/client";
 
 
@@ -78,6 +79,7 @@ function Memory() {
           setMatched((s) => new Set(s).add(a.pairKey));
           setFlipped([]);
           addScore(2);
+          void awardGameScore("memory", 2);
         }, 500);
       } else {
         setTimeout(() => setFlipped([]), 900);
@@ -86,7 +88,10 @@ function Memory() {
   };
 
   useEffect(() => {
-    if (done) addScore(10);
+    if (done) {
+      addScore(10);
+      void awardGameScore("memory", 10);
+    }
   }, [done]);
 
   const reset = () => {

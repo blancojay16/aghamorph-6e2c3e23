@@ -2,6 +2,8 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { useMemo, useState } from "react";
 import { StudentHeader } from "@/components/student-header";
 import { addScore } from "@/lib/progress";
+import { awardGameScore } from "@/lib/game-scores";
+
 
 export const Route = createFileRoute("/games/label")({
   head: () => ({ meta: [{ title: "Sort the Eaters — Aghamorph" }] }),
@@ -38,7 +40,7 @@ const ANIMALS: Animal[] = [
 const GROUPS: { key: Group; label: string; emoji: string; color: string }[] = [
   { key: "herbivore", label: "Herbivore", emoji: "🌿", color: "var(--herbivore)" },
   { key: "carnivore", label: "Carnivore", emoji: "🍖", color: "var(--carnivore)" },
-  { key: "omnivore", label: "Omnivore", emoji: "🍽️", color: "var(--omnivore)" },
+  { key: "omnivore", label: "Omnivore", emoji: "🌿🍖", color: "var(--omnivore)" },
 ];
 
 function shuffle<T>(a: T[]): T[] {
@@ -68,6 +70,7 @@ function SortTheEaters() {
     const ok = g === current.group;
     if (ok) {
       addScore(1);
+      void awardGameScore("label", 1);
       setCorrectCount((c) => c + 1);
       setPlaced((p) => [...p, { animal: current, picked: g, ok: true }]);
       setIndex((i) => i + 1);
