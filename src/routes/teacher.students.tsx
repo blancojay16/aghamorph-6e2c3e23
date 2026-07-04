@@ -5,7 +5,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/teacher/students")({
-  component: TeacherStudents,
+  component: TeacherGroups,
 });
 
 interface Answer {
@@ -21,97 +21,109 @@ interface Answer {
   created_at: string;
 }
 
-function tokens(name: string): string[] {
-  return name
-    .toLowerCase()
-    .split(/\s+/)
-    .map((t) => t.replace(/[^a-z0-9]/g, ""))
-    .filter((t) => t.length >= 2);
+function nextGroupNumber(names: string[]): number {
+  const used = new Set<number>();
+  for (const n of names) {
+    const m = /group\s*(\d+)/i.exec(n);
+    if (m) used.add(Number(m[1]));
+  }
+  let i = 1;
+  while (used.has(i)) i++;
+  return i;
 }
 
-function TeacherStudents() {
+function TeacherGroups() {
   const qc = useQueryClient();
   const [selectedId, setSelectedId] = useState<string | null>(null);
+  const [adding, setAdding] = useState(false);
 
-  const { data: students = [] } = useQuery({
-    queryKey: ["teacher-students"],
+  const { data: groups = [] } = useQuery({
+    queryKey: ["teacher-groups"],
     queryFn: async () => {
       const { data, error } = await supabase
         .from("students")
         .select("id,name,score,created_at,updated_at")
-        .order("created_at", { ascending: false });
+        .order("created_at", { ascending: true });
       if (error) throw error;
       return data;
     },
     refetchInterval: 10_000,
   });
 
-  // Group by shared name tokens to surface duplicates.
-  const dupGroups = new Map<string, string[]>();
-  for (const s of students) {
-    for (const t of tokens(s.name)) {
-      const arr = dupGroups.get(t) ?? [];
-      arr.push(s.id);
-      dupGroups.set(t, arr);
+  const addGroup = async () => {
+    setAdding(true);
+    try {
+      const n = nextGroupNumber(groups.map((g) => g.name));
+      const { error } = await supabase
+        .from("students")
+        .insert({ name: `Group ${n}`, score: 0 });
+      if (error) throw error;
+      toast.success(`Group ${n} added`);
+      qc.invalidateQueries({ queryKey: ["teacher-groups"] });
+    } catch (err) {
+      toast.error((err as Error).message);
+    } finally {
+      setAdding(false);
     }
-  }
-  const dupIds = new Set<string>();
-  for (const ids of dupGroups.values()) {
-    if (ids.length > 1) ids.forEach((id) => dupIds.add(id));
-  }
+  };
 
   const remove = async (id: string, name: string) => {
-    if (!confirm(`Delete student "${name}"? This also clears their answer history.`)) return;
+    if (!confirm(`Delete "${name}"? This also clears its answers and scores.`)) return;
     const { error } = await supabase.from("students").delete().eq("id", id);
     if (error) return toast.error(error.message);
-    toast.success("Student deleted");
+    toast.success("Group deleted");
     if (selectedId === id) setSelectedId(null);
-    qc.invalidateQueries({ queryKey: ["teacher-students"] });
+    qc.invalidateQueries({ queryKey: ["teacher-groups"] });
   };
 
   return (
     <div>
       <div className="flex items-center justify-between mb-4">
-        <h1 className="text-2xl font-bold">Students</h1>
-        <Link to="/teacher" className="text-sm text-muted-foreground hover:text-foreground">
-          ← Back
-        </Link>
+        <h1 className="text-2xl font-bold">Groups</h1>
+        <div className="flex items-center gap-2">
+          <Link
+            to="/teacher/rankings"
+            className="text-sm px-3 py-1.5 rounded-full bg-muted hover:bg-secondary"
+          >
+            🏆 Rankings
+          </Link>
+          <button
+            onClick={addGroup}
+            disabled={adding}
+            className="text-sm px-3 py-1.5 rounded-full bg-primary text-primary-foreground font-semibold disabled:opacity-60"
+          >
+            + Add group
+          </button>
+        </div>
       </div>
 
-      {dupIds.size > 0 && (
-        <div className="mb-4 rounded-2xl border-2 border-destructive/40 bg-destructive/10 p-4 text-sm">
-          ⚠️ <strong>{dupIds.size}</strong> student{dupIds.size === 1 ? "" : "s"} share a first or last
-          name with another entry. Delete the old one so the new student can sign up.
-        </div>
-      )}
-
-      <div className="grid gap-6 lg:grid-cols-[360px_1fr]">
+      <div className="grid gap-6 lg:grid-cols-[320px_1fr]">
         <ul className="space-y-2">
-          {students.length === 0 && (
-            <li className="text-sm text-muted-foreground">No students yet.</li>
+          {groups.length === 0 && (
+            <li className="text-sm text-muted-foreground">
+              No groups yet. Tap <b>+ Add group</b> to create Group 1.
+            </li>
           )}
-          {students.map((s) => {
-            const isDup = dupIds.has(s.id);
-            const isSel = selectedId === s.id;
+          {groups.map((g) => {
+            const isSel = selectedId === g.id;
             return (
               <li
-                key={s.id}
+                key={g.id}
                 className={`bg-card border rounded-2xl p-3 flex items-center gap-3 ${
                   isSel ? "ring-2 ring-primary" : ""
-                } ${isDup ? "border-destructive/60" : ""}`}
+                }`}
               >
                 <button
-                  onClick={() => setSelectedId(s.id)}
+                  onClick={() => setSelectedId(g.id)}
                   className="flex-1 text-left min-w-0"
                 >
-                  <p className="font-semibold truncate">{s.name}</p>
+                  <p className="font-semibold truncate">{g.name}</p>
                   <p className="text-xs text-muted-foreground">
-                    ⭐ {s.score} · {new Date(s.created_at).toLocaleDateString()}
-                    {isDup && <span className="ml-2 text-destructive font-bold">· duplicate</span>}
+                    ⭐ {g.score} · added {new Date(g.created_at).toLocaleDateString()}
                   </p>
                 </button>
                 <button
-                  onClick={() => remove(s.id, s.name)}
+                  onClick={() => remove(g.id, g.name)}
                   className="text-xs px-3 py-1.5 rounded-full bg-muted hover:bg-destructive hover:text-destructive-foreground"
                 >
                   Delete
@@ -123,13 +135,13 @@ function TeacherStudents() {
 
         <div className="bg-card border rounded-2xl p-4 min-h-[300px]">
           {selectedId ? (
-            <StudentAnswers
-              studentId={selectedId}
-              studentName={students.find((s) => s.id === selectedId)?.name ?? ""}
+            <GroupAnswers
+              groupId={selectedId}
+              groupName={groups.find((g) => g.id === selectedId)?.name ?? ""}
             />
           ) : (
             <p className="text-sm text-muted-foreground text-center py-10">
-              Click a student to see the lessons they took and which questions they got right or wrong.
+              Pick a group to see the lessons they took and which questions they got right or wrong.
             </p>
           )}
         </div>
@@ -138,14 +150,14 @@ function TeacherStudents() {
   );
 }
 
-function StudentAnswers({ studentId, studentName }: { studentId: string; studentName: string }) {
+function GroupAnswers({ groupId, groupName }: { groupId: string; groupName: string }) {
   const { data: answers = [], isLoading } = useQuery({
-    queryKey: ["student-answers", studentId],
+    queryKey: ["group-answers", groupId],
     queryFn: async () => {
       const { data, error } = await supabase
         .from("student_answers")
         .select("*")
-        .eq("student_id", studentId)
+        .eq("student_id", groupId)
         .order("created_at", { ascending: true });
       if (error) throw error;
       return (data ?? []).map((a) => ({
@@ -160,7 +172,7 @@ function StudentAnswers({ studentId, studentName }: { studentId: string; student
   if (answers.length === 0) {
     return (
       <p className="text-sm text-muted-foreground text-center py-10">
-        {studentName} hasn't answered any lesson questions yet.
+        {groupName} hasn't answered any lesson questions yet.
       </p>
     );
   }
@@ -174,7 +186,7 @@ function StudentAnswers({ studentId, studentName }: { studentId: string; student
 
   return (
     <div>
-      <h2 className="font-bold text-lg mb-1">{studentName}</h2>
+      <h2 className="font-bold text-lg mb-1">{groupName}</h2>
       <p className="text-xs text-muted-foreground mb-4">
         {answers.length} answer{answers.length === 1 ? "" : "s"} across {byVideo.size} lesson
         {byVideo.size === 1 ? "" : "s"} ·{" "}
@@ -219,10 +231,7 @@ function StudentAnswers({ studentId, studentName }: { studentId: string; student
                           ? "bg-destructive/20 text-foreground"
                           : "bg-muted/60";
                       return (
-                        <li
-                          key={i}
-                          className={`px-2 py-1 rounded text-xs ${cls}`}
-                        >
+                        <li key={i} className={`px-2 py-1 rounded text-xs ${cls}`}>
                           {isPicked ? "👉 " : ""}
                           {opt}
                           {isCorrect ? "  ✓" : ""}
