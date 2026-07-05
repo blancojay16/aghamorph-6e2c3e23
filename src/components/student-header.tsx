@@ -1,4 +1,4 @@
-import { Link, useRouterState } from "@tanstack/react-router";
+import { Link, useLocation } from "react-router-dom";
 import { loadProgress } from "@/lib/progress";
 import { useEffect, useState } from "react";
 
@@ -15,7 +15,7 @@ export function StudentHeader() {
     };
   }, []);
 
-  const path = useRouterState({ select: (s) => s.location.pathname });
+  const path = useLocation().pathname;
 
   return (
     <header className="sticky top-0 z-30 backdrop-blur bg-background/80 border-b">

@@ -1,14 +1,9 @@
-import { createFileRoute, Link } from "@tanstack/react-router";
+import { Link } from "react-router-dom";
 import { useMemo, useState } from "react";
 import { StudentHeader } from "@/components/student-header";
 import { addScore } from "@/lib/progress";
 import { awardGameScore } from "@/lib/game-scores";
 
-
-export const Route = createFileRoute("/games/label")({
-  head: () => ({ meta: [{ title: "Sort the Eaters — Aghamorph" }] }),
-  component: SortTheEaters,
-});
 
 type Group = "herbivore" | "carnivore" | "omnivore";
 
@@ -167,3 +162,6 @@ function SortTheEaters() {
     </div>
   );
 }
+
+
+export default SortTheEaters;

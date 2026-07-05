@@ -1,12 +1,8 @@
-import { createFileRoute, Link } from "@tanstack/react-router";
+import { Link } from "react-router-dom";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
-
-export const Route = createFileRoute("/teacher/students")({
-  component: TeacherGroups,
-});
 
 interface Answer {
   id: string;
@@ -248,3 +244,6 @@ function GroupAnswers({ groupId, groupName }: { groupId: string; groupName: stri
     </div>
   );
 }
+
+
+export default TeacherGroups;

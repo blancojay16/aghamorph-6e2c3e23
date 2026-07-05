@@ -1,42 +1,55 @@
-import { createFileRoute, Link, Outlet, useNavigate } from "@tanstack/react-router";
+import { Link, useHistory } from "react-router-dom";
 import { useEffect, useState } from "react";
-import { listLocalVideos, startSyncLoop } from "@/lib/offline-sync";
+import {
+  getCacheStatus,
+  syncCacheOnce,
+} from "@/lib/offline-cache";
 
-export const Route = createFileRoute("/teacher")({
-  component: TeacherLayout,
-});
-
-function TeacherLayout() {
-  const navigate = useNavigate();
-  const [pending, setPending] = useState(0);
-  const [online, setOnline] = useState(
-    typeof navigator === "undefined" ? true : navigator.onLine,
-  );
+function TeacherLayout({ children }: { children: React.ReactNode }) {
+  const history = useHistory();
+  const [status, setStatus] = useState(getCacheStatus());
+  const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
-    const stop = startSyncLoop();
-    const refresh = async () => {
-      try {
-        const list = await listLocalVideos();
-        setPending(list.filter((v) => v.syncStatus !== "synced").length);
-      } catch {
-        /* IDB unavailable */
-      }
+    setMounted(true);
+    setStatus(getCacheStatus());
+    const on = (e: Event) => {
+      const detail = (e as CustomEvent).detail;
+      if (detail) setStatus(detail);
+      else setStatus(getCacheStatus());
     };
-    refresh();
-    const onSync = () => refresh();
-    const onLine = () => setOnline(true);
-    const offLine = () => setOnline(false);
-    window.addEventListener("aghamorph:sync", onSync);
-    window.addEventListener("online", onLine);
-    window.addEventListener("offline", offLine);
+    const online = () => {
+      setStatus({ ...getCacheStatus(), online: true });
+      void syncCacheOnce();
+    };
+    const offline = () => setStatus({ ...getCacheStatus(), online: false });
+    window.addEventListener("aghamorph:cache-status", on);
+    window.addEventListener("aghamorph:cache", on);
+    window.addEventListener("online", online);
+    window.addEventListener("offline", offline);
     return () => {
-      stop?.();
-      window.removeEventListener("aghamorph:sync", onSync);
-      window.removeEventListener("online", onLine);
-      window.removeEventListener("offline", offLine);
+      window.removeEventListener("aghamorph:cache-status", on);
+      window.removeEventListener("aghamorph:cache", on);
+      window.removeEventListener("online", online);
+      window.removeEventListener("offline", offline);
     };
   }, []);
+
+  const badgeText = !mounted
+    ? "● …"
+    : !status.online
+      ? "● Offline"
+      : status.caching > 0
+        ? `⟳ Caching (${status.caching})`
+        : "● Online";
+
+  const badgeClass = !mounted
+    ? "bg-muted text-muted-foreground"
+    : !status.online
+      ? "bg-destructive/15 text-destructive"
+      : status.caching > 0
+        ? "bg-accent text-accent-foreground"
+        : "bg-muted text-muted-foreground";
 
   return (
     <div className="min-h-screen bg-secondary/30">
@@ -46,52 +59,37 @@ function TeacherLayout() {
             <span>🧬</span> Aghamorph <span className="text-muted-foreground font-normal">/ Teacher</span>
           </Link>
           <span
-            className={`ml-2 text-xs px-2 py-1 rounded-full font-semibold ${
-              !online
-                ? "bg-destructive/15 text-destructive"
-                : pending > 0
-                  ? "bg-accent text-accent-foreground"
-                  : "bg-muted text-muted-foreground"
-            }`}
-            title={
-              !online
-                ? "Offline — changes save locally"
-                : pending > 0
-                  ? `${pending} item${pending === 1 ? "" : "s"} waiting to upload`
-                  : "All changes synced"
-            }
+            className={`ml-2 text-xs px-2 py-1 rounded-full font-semibold ${badgeClass}`}
+            title={!status.online ? "Offline — videos already downloaded still work" : "Online"}
           >
-            {!online ? "● Offline" : pending > 0 ? `⟳ Syncing (${pending})` : "● Synced"}
+            {badgeText}
           </span>
-          <Link
-            to="/teacher/students"
-            className="ml-auto text-sm px-3 py-1.5 rounded-full hover:bg-muted"
-          >
+          <Link to="/teacher/students" className="ml-auto text-sm px-3 py-1.5 rounded-full hover:bg-muted">
             👥 Groups
           </Link>
-          <Link
-            to="/teacher/rankings"
-            className="text-sm px-3 py-1.5 rounded-full hover:bg-muted"
-          >
+          <Link to="/teacher/rankings" className="text-sm px-3 py-1.5 rounded-full hover:bg-muted">
             🏆 Rankings
           </Link>
           <Link to="/teacher/games" className="text-sm px-3 py-1.5 rounded-full hover:bg-muted">
             🧩 Game images
           </Link>
+          <Link to="/teacher/trace" className="text-sm px-3 py-1.5 rounded-full hover:bg-muted">
+            ➡️ Trace game
+          </Link>
           <Link to="/" className="text-sm px-3 py-1.5 rounded-full hover:bg-muted">
             Student view
           </Link>
           <button
-            onClick={() => navigate({ to: "/" })}
+            onClick={() => history.push("/")}
             className="text-sm px-3 py-1.5 rounded-full bg-muted hover:bg-secondary"
           >
             Leave
           </button>
         </div>
       </header>
-      <main className="mx-auto max-w-6xl px-4 py-6">
-        <Outlet />
-      </main>
+      <main className="mx-auto max-w-6xl px-4 py-6">{children}</main>
     </div>
   );
 }
+
+export default TeacherLayout;

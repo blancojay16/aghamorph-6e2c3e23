@@ -229,6 +229,62 @@ export type Database = {
         }
         Relationships: []
       }
+      trace_chains: {
+        Row: {
+          created_at: string
+          id: string
+          system: string
+          title: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          system?: string
+          title: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          system?: string
+          title?: string
+        }
+        Relationships: []
+      }
+      trace_organisms: {
+        Row: {
+          chain_id: string
+          created_at: string
+          file_path: string
+          id: string
+          label: string
+          position: number
+        }
+        Insert: {
+          chain_id: string
+          created_at?: string
+          file_path: string
+          id?: string
+          label: string
+          position?: number
+        }
+        Update: {
+          chain_id?: string
+          created_at?: string
+          file_path?: string
+          id?: string
+          label?: string
+          position?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "trace_organisms_chain_id_fkey"
+            columns: ["chain_id"]
+            isOneToOne: false
+            referencedRelation: "trace_chains"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       videos: {
         Row: {
           created_at: string

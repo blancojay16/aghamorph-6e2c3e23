@@ -1,13 +1,9 @@
-import { createFileRoute, Link } from "@tanstack/react-router";
+import { Link, useParams } from "react-router-dom";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useRef, useState } from "react";
 import { QRCodeCanvas } from "qrcode.react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
-
-export const Route = createFileRoute("/teacher/video/$videoId")({
-  component: VideoEditor,
-});
 
 function fmt(t: number) {
   const m = Math.floor(t / 60);
@@ -16,7 +12,7 @@ function fmt(t: number) {
 }
 
 function VideoEditor() {
-  const { videoId } = Route.useParams();
+  const { videoId } = useParams<{videoId:string}>();
   const qc = useQueryClient();
   const videoRef = useRef<HTMLVideoElement>(null);
   const [currentTs, setCurrentTs] = useState(0);
@@ -337,3 +333,6 @@ function ShareQR({ videoId, title }: { videoId: string; title: string }) {
   );
 }
 
+
+
+export default VideoEditor;

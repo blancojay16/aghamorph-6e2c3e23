@@ -1,10 +1,6 @@
-import { createFileRoute, Link } from "@tanstack/react-router";
+import { Link } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-
-export const Route = createFileRoute("/teacher/rankings")({
-  component: RankingsPage,
-});
 
 const GAMES: { key: "label" | "memory" | "jigsaw" | "quiz"; label: string; emoji: string }[] = [
   { key: "label", emoji: "🏷️", label: "Sort the Eaters" },
@@ -104,3 +100,6 @@ function RankingsPage() {
     </div>
   );
 }
+
+
+export default RankingsPage;

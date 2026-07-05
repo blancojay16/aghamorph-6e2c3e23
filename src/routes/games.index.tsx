@@ -1,15 +1,5 @@
-import { createFileRoute, Link } from "@tanstack/react-router";
+import { Link } from "react-router-dom";
 import { StudentHeader } from "@/components/student-header";
-
-export const Route = createFileRoute("/games/")({
-  head: () => ({
-    meta: [
-      { title: "Games — Aghamorph" },
-      { name: "description", content: "Play food chain games: jigsaw, memory, quiz, and sort the animals." },
-    ],
-  }),
-  component: GamesHub,
-});
 
 const GAMES = [
   { to: "/games/jigsaw", emoji: "🧩", title: "Jigsaw Puzzle", desc: "Rebuild a food chain picture", color: "var(--food-chain)" },
@@ -54,3 +44,6 @@ function GamesHub() {
     </div>
   );
 }
+
+
+export default GamesHub;

@@ -14,7 +14,7 @@ export const SYSTEMS: {
   { key: "food_chain", label: "Food Chain", emoji: "🔄", tagline: "How living things depend on each other for food", colorVar: "var(--food-chain)" },
   { key: "herbivore", label: "Herbivore", emoji: "🌿", tagline: "Animals that eat only plants", colorVar: "var(--herbivore)" },
   { key: "carnivore", label: "Carnivore", emoji: "🍖", tagline: "Animals that eat other animals", colorVar: "var(--carnivore)" },
-  { key: "omnivore", label: "Omnivore", emoji: "🌿🍖", tagline: "Animals that eat both plants and animals", colorVar: "var(--omnivore)" },
+  { key: "omnivore", label: "Omnivore", emoji: "🥩", tagline: "Animals that eat both plants and animals", colorVar: "var(--omnivore)" },
 ];
 
 export const systemMeta = (k: BodySystem) =>

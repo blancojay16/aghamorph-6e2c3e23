@@ -1,4 +1,4 @@
-import { createFileRoute, Link } from "@tanstack/react-router";
+import { Link } from "react-router-dom";
 import { useEffect, useMemo, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { StudentHeader } from "@/components/student-header";
@@ -6,11 +6,6 @@ import { addScore } from "@/lib/progress";
 import { awardGameScore } from "@/lib/game-scores";
 import { supabase } from "@/integrations/supabase/client";
 import { SYSTEMS, systemMeta, type BodySystem } from "@/lib/systems";
-
-export const Route = createFileRoute("/games/jigsaw")({
-  head: () => ({ meta: [{ title: "Jigsaw Puzzle — Aghamorph" }] }),
-  component: Jigsaw,
-});
 
 const SIZE = 3; // 3x3
 
@@ -238,3 +233,6 @@ function BackBar({ title }: { title: string }) {
     </div>
   );
 }
+
+
+export default Jigsaw;
