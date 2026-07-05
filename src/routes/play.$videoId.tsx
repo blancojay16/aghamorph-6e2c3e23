@@ -6,8 +6,13 @@ import { supabase } from "@/integrations/supabase/client";
 import { StudentHeader } from "@/components/student-header";
 import { systemMeta, type BodySystem } from "@/lib/systems";
 import { addScore, markVideoComplete, awardBadge } from "@/lib/progress";
-import { loadStudent } from "@/lib/student";
-import { cacheRemoteVideo, getCachedVideoBlob } from "@/lib/offline-sync";
+import {
+  cacheVideoBlob,
+  getCachedCheckpoints,
+  getCachedQuiz,
+  getCachedVideoBlob,
+  getCachedVideoMeta,
+} from "@/lib/offline-cache";
 
 interface Checkpoint {
   id: string;
@@ -16,48 +21,68 @@ interface Checkpoint {
   options: string[];
   correct_index: number;
 }
-
 interface QuizQuestion {
   id: string;
   prompt: string;
   options: string[];
   correct_index: number;
 }
+interface PageData {
+  video: { id: string; title: string; system: string; file_path: string };
+  url: string | null;
+  checkpoints: Checkpoint[];
+  quiz: QuizQuestion[];
+}
 
 function PlayPage() {
-  const { videoId } = useParams<{videoId:string}>();
+  const { videoId } = useParams<{ videoId: string }>();
   const history = useHistory();
 
-  const { data, isLoading } = useQuery({
+  const { data, isLoading } = useQuery<PageData | null>({
     queryKey: ["video", videoId],
     queryFn: async () => {
-      const [{ data: video, error: ve }, { data: cps, error: ce }, { data: qz, error: qe }] = await Promise.all([
-        supabase.from("videos").select("*").eq("id", videoId).single(),
-        supabase.from("checkpoints").select("*").eq("video_id", videoId).order("ts_seconds"),
-        supabase.from("quiz_questions").select("*").eq("video_id", videoId).order("position"),
-      ]);
-      if (ve) throw ve;
-      if (ce) throw ce;
-      if (qe) throw qe;
-      const { data: pub } = supabase.storage.from("videos").getPublicUrl(video.file_path);
-      return {
-        video,
-        url: pub.publicUrl,
-        checkpoints: (cps ?? []).map((c) => ({
-          ...c,
-          options: Array.isArray(c.options) ? (c.options as string[]) : [],
-        })) as Checkpoint[],
-        quiz: (qz ?? []).map((q) => ({
-          id: q.id,
-          prompt: q.prompt,
-          correct_index: q.correct_index,
-          options: Array.isArray(q.options) ? (q.options as string[]) : [],
-        })) as QuizQuestion[],
-      };
+      // Try online first, fall back to cache
+      try {
+        const [
+          { data: video, error: ve },
+          { data: cps, error: ce },
+          { data: qz, error: qe },
+        ] = await Promise.all([
+          supabase.from("videos").select("*").eq("id", videoId).single(),
+          supabase.from("checkpoints").select("*").eq("video_id", videoId).order("ts_seconds"),
+          supabase.from("quiz_questions").select("*").eq("video_id", videoId).order("position"),
+        ]);
+        if (ve || ce || qe) throw ve || ce || qe;
+        const { data: pub } = supabase.storage.from("videos").getPublicUrl(video.file_path);
+        return {
+          video,
+          url: pub.publicUrl,
+          checkpoints: (cps ?? []).map((c) => ({
+            ...c,
+            options: Array.isArray(c.options) ? (c.options as string[]) : [],
+          })) as Checkpoint[],
+          quiz: (qz ?? []).map((q) => ({
+            id: q.id,
+            prompt: q.prompt,
+            correct_index: q.correct_index,
+            options: Array.isArray(q.options) ? (q.options as string[]) : [],
+          })) as QuizQuestion[],
+        };
+      } catch {
+        const cachedMeta = await getCachedVideoMeta(videoId);
+        if (!cachedMeta) return null;
+        const cps = await getCachedCheckpoints(videoId);
+        const qz = await getCachedQuiz(videoId);
+        return {
+          video: cachedMeta,
+          url: null,
+          checkpoints: cps as Checkpoint[],
+          quiz: qz as QuizQuestion[],
+        };
+      }
     },
   });
 
-  // Prefer a cached blob if we have one, else use the remote URL and cache it.
   const [srcUrl, setSrcUrl] = useState<string | null>(null);
   useEffect(() => {
     let objectUrl: string | null = null;
@@ -71,15 +96,14 @@ function PlayPage() {
       }
       if (data?.url && !cancelled) {
         setSrcUrl(data.url);
-        // Try to cache for offline playback (best effort)
         try {
           const res = await fetch(data.url);
           if (res.ok) {
             const blob = await res.blob();
-            await cacheRemoteVideo(videoId, blob, blob.type || "video/mp4");
+            await cacheVideoBlob(videoId, blob, blob.type || "video/mp4");
           }
         } catch {
-          /* offline or CORS — ignore */
+          /* offline — ignore */
         }
       }
     })();
@@ -90,21 +114,11 @@ function PlayPage() {
   }, [videoId, data?.url]);
 
   const videoRef = useRef<HTMLVideoElement>(null);
-  const wrapperRef = useRef<HTMLDivElement>(null);
   const answeredRef = useRef<Set<string>>(new Set());
   const [activeCheckpoint, setActiveCheckpoint] = useState<Checkpoint | null>(null);
   const [feedback, setFeedback] = useState<"correct" | "wrong" | null>(null);
   const [pickedIndex, setPickedIndex] = useState<number | null>(null);
   const [showQuiz, setShowQuiz] = useState(false);
-  const [retakeKey, setRetakeKey] = useState(0);
-  const [fsElement, setFsElement] = useState<Element | null>(null);
-  const [orientation, setOrientation] = useState<"landscape" | "portrait" | null>(null);
-
-  useEffect(() => {
-    const onFsChange = () => setFsElement(document.fullscreenElement);
-    document.addEventListener("fullscreenchange", onFsChange);
-    return () => document.removeEventListener("fullscreenchange", onFsChange);
-  }, []);
 
   useEffect(() => {
     const v = videoRef.current;
@@ -131,363 +145,108 @@ function PlayPage() {
       v.removeEventListener("timeupdate", onTime);
       v.removeEventListener("ended", onEnded);
     };
-  }, [data, activeCheckpoint, videoId, retakeKey]);
+  }, [data, activeCheckpoint, videoId]);
 
-  if (isLoading || !data) {
+  const answer = (idx: number) => {
+    if (!activeCheckpoint || pickedIndex !== null) return;
+    setPickedIndex(idx);
+    const correct = idx === activeCheckpoint.correct_index;
+    setFeedback(correct ? "correct" : "wrong");
+    if (correct) addScore(1);
+    setTimeout(() => {
+      answeredRef.current.add(activeCheckpoint.id);
+      setActiveCheckpoint(null);
+      setPickedIndex(null);
+      setFeedback(null);
+      videoRef.current?.play();
+    }, 900);
+  };
+
+  if (isLoading) {
     return (
       <div className="min-h-screen">
         <StudentHeader />
-        <div className="p-10 text-center text-muted-foreground">Loading…</div>
+        <main className="mx-auto max-w-3xl px-4 py-8 text-center text-muted-foreground">Loading…</main>
+      </div>
+    );
+  }
+
+  if (!data) {
+    return (
+      <div className="min-h-screen">
+        <StudentHeader />
+        <main className="mx-auto max-w-3xl px-4 py-8">
+          <p className="text-muted-foreground">This lesson isn't available offline yet.</p>
+          <Link to="/student" className="text-primary underline">Back to lessons</Link>
+        </main>
       </div>
     );
   }
 
   const meta = systemMeta(data.video.system as BodySystem);
 
-  const onAnswer = (idx: number) => {
-    if (!activeCheckpoint) return;
-    const correct = idx === activeCheckpoint.correct_index;
-    setPickedIndex(idx);
-    setFeedback(correct ? "correct" : "wrong");
-    if (correct) addScore(1);
-    const student = loadStudent();
-    if (student) {
-      void supabase.from("student_answers").insert({
-        student_id: student.id,
-        video_id: videoId,
-        video_title: data.video.title,
-        source: "checkpoint",
-        question_id: activeCheckpoint.id,
-        prompt: activeCheckpoint.prompt,
-        options: activeCheckpoint.options,
-        picked_index: idx,
-        correct_index: activeCheckpoint.correct_index,
-        is_correct: correct,
-      });
-    }
-  };
-
-  const dismiss = () => {
-    if (activeCheckpoint) answeredRef.current.add(activeCheckpoint.id);
-    setActiveCheckpoint(null);
-    setFeedback(null);
-    setPickedIndex(null);
-    videoRef.current?.play().catch(() => {});
-  };
-
-  const retake = () => {
-    answeredRef.current = new Set();
-    setActiveCheckpoint(null);
-    setFeedback(null);
-    setPickedIndex(null);
-    setShowQuiz(false);
-    setRetakeKey((k) => k + 1);
-    const v = videoRef.current;
-    if (v) {
-      v.currentTime = 0;
-      v.play().catch(() => {});
-    }
-  };
-
-  useEffect(() => {
-    const needsOverlay = !!activeCheckpoint || showQuiz;
-    if (!needsOverlay) return;
-    if (fsElement === videoRef.current && wrapperRef.current) {
-      const w = wrapperRef.current;
-      document.exitFullscreen().then(() => w.requestFullscreen?.()).catch(() => {});
-    }
-  }, [activeCheckpoint, showQuiz, fsElement]);
-
   return (
     <div className="min-h-screen">
       <StudentHeader />
-      <main className="mx-auto max-w-4xl px-4 py-6">
-        <Link to="/" className="text-sm text-muted-foreground hover:text-foreground">
-          ← Back to systems
-        </Link>
-        <div className="flex items-center gap-3 mt-3 mb-4">
-          <div
-            className="size-12 rounded-2xl grid place-items-center text-2xl"
-            style={{ background: `color-mix(in oklab, ${meta.colorVar} 18%, transparent)` }}
-          >
-            {meta.emoji}
-          </div>
-          <div>
-            <p className="text-xs uppercase tracking-wider text-muted-foreground">
-              {meta.label} system
-            </p>
-            <h1 className="text-2xl font-bold">{data.video.title}</h1>
-          </div>
-        </div>
+      <main className="mx-auto max-w-3xl px-4 py-6">
+        <button onClick={() => history.push("/student")} className="text-sm text-muted-foreground hover:text-foreground mb-2">
+          ← Back
+        </button>
+        <h1 className="text-2xl font-extrabold mb-2 flex items-center gap-2">
+          <span>{meta.emoji}</span>
+          {data.video.title}
+        </h1>
 
-        <div
-          ref={wrapperRef}
-          className={`relative rounded-2xl overflow-hidden bg-black mx-auto [&:fullscreen]:rounded-none [&:fullscreen]:aspect-auto [&:fullscreen]:w-screen [&:fullscreen]:h-screen [&:fullscreen]:max-w-none ${
-            orientation === "portrait"
-              ? "aspect-[9/16] max-w-[min(100%,420px)]"
-              : "aspect-video w-full"
-          }`}
-        >
-          {srcUrl && (
-            <video
-              ref={videoRef}
-              src={srcUrl}
-              controls
-              playsInline
-              onLoadedMetadata={(e) => {
-                const v = e.currentTarget;
-                if (v.videoWidth && v.videoHeight) {
-                  setOrientation(v.videoHeight > v.videoWidth ? "portrait" : "landscape");
-                }
-              }}
-              className={`w-full h-full ${orientation === "portrait" ? "object-contain" : "object-contain"}`}
-            />
+        <div className="relative rounded-2xl overflow-hidden bg-black aspect-video">
+          {srcUrl ? (
+            <video ref={videoRef} src={srcUrl} controls playsInline className="w-full h-full" />
+          ) : (
+            <div className="w-full h-full grid place-items-center text-white/60">Preparing…</div>
           )}
           {activeCheckpoint && (
-            <CheckpointSheet
-              cp={activeCheckpoint}
-              feedback={feedback}
-              pickedIndex={pickedIndex}
-              onAnswer={onAnswer}
-              onContinue={dismiss}
-            />
-          )}
-          {showQuiz && (
-            <FinalQuiz
-              questions={data.quiz}
-              videoId={videoId}
-              videoTitle={data.video.title}
-              onClose={() => setShowQuiz(false)}
-              onRetake={retake}
-            />
+            <div className="absolute inset-0 bg-black/75 grid place-items-center p-4">
+              <div className="bg-card text-foreground rounded-2xl p-4 max-w-sm w-full">
+                <p className="font-bold mb-3">{activeCheckpoint.prompt}</p>
+                <ul className="space-y-2">
+                  {activeCheckpoint.options.map((o, i) => {
+                    const isPicked = pickedIndex === i;
+                    const isRight = i === activeCheckpoint.correct_index;
+                    let cls = "bg-muted";
+                    if (feedback && isRight) cls = "bg-[oklch(0.85_0.15_145)] text-foreground";
+                    else if (feedback && isPicked && !isRight)
+                      cls = "bg-destructive text-destructive-foreground";
+                    return (
+                      <li key={i}>
+                        <button
+                          disabled={pickedIndex !== null}
+                          onClick={() => answer(i)}
+                          className={`w-full text-left px-3 py-2 rounded-lg font-semibold ${cls}`}
+                        >
+                          {o}
+                        </button>
+                      </li>
+                    );
+                  })}
+                </ul>
+              </div>
+            </div>
           )}
         </div>
 
-        <div className="mt-3 flex items-center justify-between gap-3 flex-wrap">
-          <p className="text-sm text-muted-foreground">
-            {data.checkpoints.length} checkpoint{data.checkpoints.length === 1 ? "" : "s"} · {data.quiz.length} quiz question{data.quiz.length === 1 ? "" : "s"}
-          </p>
-          <button
-            onClick={retake}
-            className="text-sm px-4 py-2 rounded-full bg-muted hover:bg-secondary font-semibold"
-          >
-            ↻ Retake lesson
-          </button>
-        </div>
-
-        <div className="mt-6 flex gap-3 justify-center flex-wrap">
-          {data.quiz.length > 0 && (
-            <button
-              onClick={() => setShowQuiz(true)}
-              className="px-5 py-2.5 rounded-full bg-primary text-primary-foreground font-semibold"
-            >
-              Take quiz →
-            </button>
-          )}
-          <button
-            onClick={() => history.push("/matching")}
-            className="px-5 py-2.5 rounded-full bg-secondary text-secondary-foreground font-semibold hover:bg-muted"
-          >
-            Play matching game →
-          </button>
-        </div>
+        {showQuiz && (
+          <div className="mt-6 bg-card border rounded-2xl p-4">
+            <p className="font-bold mb-2">🎉 Lesson complete!</p>
+            <p className="text-sm text-muted-foreground mb-3">
+              Try the games to earn more points.
+            </p>
+            <Link to="/games" className="inline-block px-4 py-2 rounded-full bg-primary text-primary-foreground font-bold">
+              Play games →
+            </Link>
+          </div>
+        )}
       </main>
     </div>
   );
 }
-
-function CheckpointSheet({
-  cp,
-  feedback,
-  pickedIndex,
-  onAnswer,
-  onContinue,
-}: {
-  cp: Checkpoint;
-  feedback: "correct" | "wrong" | null;
-  pickedIndex: number | null;
-  onAnswer: (i: number) => void;
-  onContinue: () => void;
-}) {
-  return (
-    <div className="fixed inset-0 z-50 bg-black/70 backdrop-blur-sm grid place-items-center p-4 animate-in fade-in overflow-y-auto">
-      <div className="bg-card text-card-foreground rounded-3xl p-4 sm:p-6 max-w-lg w-full shadow-2xl my-auto">
-        <p className="text-xs uppercase tracking-wider text-primary font-bold mb-2">Quick check</p>
-        <h2 className="text-lg sm:text-xl font-bold mb-3 sm:mb-4">{cp.prompt}</h2>
-        <div className="space-y-2">
-          {cp.options.map((opt, i) => {
-            const isCorrect = i === cp.correct_index;
-            const isPicked = i === pickedIndex;
-            const show = feedback !== null;
-            const cls = !show
-              ? "bg-muted hover:bg-secondary"
-              : isCorrect
-                ? "bg-[oklch(0.85_0.15_145)] text-foreground"
-                : isPicked
-                  ? "bg-destructive text-destructive-foreground"
-                  : "bg-muted opacity-60";
-            return (
-              <button
-                key={i}
-                disabled={feedback !== null}
-                onClick={() => onAnswer(i)}
-                className={`w-full text-left p-3 rounded-xl font-semibold transition text-sm sm:text-base ${cls}`}
-              >
-                {opt}
-              </button>
-            );
-          })}
-        </div>
-        {feedback && (
-          <div className="mt-4 flex items-center justify-between gap-3">
-            <p className="font-bold text-sm sm:text-base">
-              {feedback === "correct" ? "Correct! +5 stars" : "Not quite — keep watching!"}
-            </p>
-            <button
-              onClick={onContinue}
-              className="px-5 py-2 rounded-full bg-primary text-primary-foreground font-bold hover:scale-105 transition text-sm sm:text-base whitespace-nowrap"
-            >
-              Continue
-            </button>
-          </div>
-        )}
-      </div>
-    </div>
-  );
-}
-
-function FinalQuiz({
-  questions,
-  videoId,
-  videoTitle,
-  onClose,
-  onRetake,
-}: {
-  questions: QuizQuestion[];
-  videoId: string;
-  videoTitle: string;
-  onClose: () => void;
-  onRetake: () => void;
-}) {
-  const [idx, setIdx] = useState(0);
-  const [picked, setPicked] = useState<number | null>(null);
-  const [score, setScore] = useState(0);
-  const [done, setDone] = useState(false);
-  const awardedRef = useRef(false);
-
-  const q = questions[idx];
-
-  const submit = (i: number) => {
-    if (picked !== null) return;
-    setPicked(i);
-    const correct = i === q.correct_index;
-    if (correct) {
-      setScore((s) => s + 1);
-      addScore(1);
-    }
-    const student = loadStudent();
-    if (student) {
-      void supabase.from("student_answers").insert({
-        student_id: student.id,
-        video_id: videoId,
-        video_title: videoTitle,
-        source: "quiz",
-        question_id: q.id,
-        prompt: q.prompt,
-        options: q.options,
-        picked_index: i,
-        correct_index: q.correct_index,
-        is_correct: correct,
-      });
-    }
-  };
-
-  const next = () => {
-    if (idx + 1 < questions.length) {
-      setIdx(idx + 1);
-      setPicked(null);
-    } else {
-      awardedRef.current = true;
-      setDone(true);
-    }
-  };
-
-  if (done) {
-    return (
-      <div className="fixed inset-0 z-50 bg-black/70 backdrop-blur-sm grid place-items-center p-4 overflow-y-auto">
-        <div className="bg-card rounded-3xl p-6 max-w-md w-full shadow-2xl text-center">
-          <div className="text-5xl mb-2">🎉</div>
-          <h2 className="text-2xl font-bold mb-1">Quiz complete!</h2>
-          <p className="text-muted-foreground mb-4">
-            You scored <span className="font-bold text-foreground">{score} / {questions.length}</span>
-          </p>
-          <div className="flex gap-2">
-            <button
-              onClick={onRetake}
-              className="flex-1 py-2.5 rounded-xl bg-muted hover:bg-secondary font-semibold"
-            >
-              Retake lesson
-            </button>
-            <button
-              onClick={onClose}
-              className="flex-1 py-2.5 rounded-xl bg-primary text-primary-foreground font-bold"
-            >
-              Done
-            </button>
-          </div>
-        </div>
-      </div>
-    );
-  }
-
-  return (
-    <div className="fixed inset-0 z-50 bg-black/70 backdrop-blur-sm grid place-items-center p-4 overflow-y-auto">
-      <div className="bg-card rounded-3xl p-6 max-w-lg w-full shadow-2xl">
-        <div className="flex items-center justify-between mb-3">
-          <p className="text-xs uppercase tracking-wider text-primary font-bold">
-            Lesson quiz · {idx + 1} / {questions.length}
-          </p>
-          <button onClick={onClose} className="text-xs text-muted-foreground hover:text-foreground">
-            Close
-          </button>
-        </div>
-        <h2 className="text-lg sm:text-xl font-bold mb-4">{q.prompt}</h2>
-        <div className="space-y-2">
-          {q.options.map((opt, i) => {
-            const show = picked !== null;
-            const isCorrect = i === q.correct_index;
-            const isPicked = i === picked;
-            const cls = !show
-              ? "bg-muted hover:bg-secondary"
-              : isCorrect
-                ? "bg-[oklch(0.85_0.15_145)] text-foreground"
-                : isPicked
-                  ? "bg-destructive/20"
-                  : "bg-muted opacity-60";
-            return (
-              <button
-                key={i}
-                disabled={picked !== null}
-                onClick={() => submit(i)}
-                className={`w-full text-left p-3 rounded-xl font-semibold transition text-sm sm:text-base ${cls}`}
-              >
-                {opt}
-              </button>
-            );
-          })}
-        </div>
-        {picked !== null && (
-          <button
-            onClick={next}
-            className="mt-4 w-full py-2.5 rounded-xl bg-primary text-primary-foreground font-bold"
-          >
-            {idx + 1 < questions.length ? "Next question →" : "See results"}
-          </button>
-        )}
-      </div>
-    </div>
-  );
-}
-
 
 export default PlayPage;
