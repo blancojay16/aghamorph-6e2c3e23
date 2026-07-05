@@ -333,3 +333,6 @@ function ShareQR({ videoId, title }: { videoId: string; title: string }) {
   );
 }
 
+
+
+export default VideoEditor;

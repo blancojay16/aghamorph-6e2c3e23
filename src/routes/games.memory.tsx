@@ -161,3 +161,6 @@ function Memory() {
     </div>
   );
 }
+
+
+export default Memory;

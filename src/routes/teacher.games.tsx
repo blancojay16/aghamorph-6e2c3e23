@@ -304,3 +304,6 @@ function MemoryPanel({ hint }: { hint: string }) {
     </div>
   );
 }
+
+
+export default TeacherGames;

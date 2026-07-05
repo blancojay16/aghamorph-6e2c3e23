@@ -232,3 +232,6 @@ function TeacherDashboard() {
     </div>
   );
 }
+
+
+export default TeacherDashboard;

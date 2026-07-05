@@ -91,3 +91,6 @@ function ScanPage() {
     </div>
   );
 }
+
+
+export default ScanPage;

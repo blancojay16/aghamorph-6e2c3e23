@@ -127,3 +127,6 @@ function StudentHome() {
 }
 
 void systemMeta;
+
+
+export default StudentHome;

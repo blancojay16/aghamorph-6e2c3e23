@@ -44,3 +44,6 @@ function GamesHub() {
     </div>
   );
 }
+
+
+export default GamesHub;

@@ -162,3 +162,6 @@ function SortTheEaters() {
     </div>
   );
 }
+
+
+export default SortTheEaters;

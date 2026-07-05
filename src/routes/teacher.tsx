@@ -91,3 +91,6 @@ function TeacherLayout() {
     </div>
   );
 }
+
+
+export default TeacherLayout;

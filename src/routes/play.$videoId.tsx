@@ -488,3 +488,6 @@ function FinalQuiz({
     </div>
   );
 }
+
+
+export default PlayPage;

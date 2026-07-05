@@ -233,3 +233,6 @@ function BackBar({ title }: { title: string }) {
     </div>
   );
 }
+
+
+export default Jigsaw;

@@ -149,3 +149,6 @@ function MatchingGame() {
     </div>
   );
 }
+
+
+export default MatchingGame;

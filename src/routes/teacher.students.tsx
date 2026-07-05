@@ -244,3 +244,6 @@ function GroupAnswers({ groupId, groupName }: { groupId: string; groupName: stri
     </div>
   );
 }
+
+
+export default TeacherGroups;
