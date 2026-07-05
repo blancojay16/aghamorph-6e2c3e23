@@ -24,7 +24,7 @@ function ScanPage() {
 
   const openId = (id: string) => {
     setScanning(false);
-    navigate({ to: "/play/$videoId", params: { videoId: id } });
+    history.push(`/play/${id}`);
   };
 
   const openManual = (e: React.FormEvent) => {
