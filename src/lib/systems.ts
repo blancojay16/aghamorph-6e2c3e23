@@ -19,15 +19,3 @@ export const SYSTEMS: {
 
 export const systemMeta = (k: BodySystem) =>
   SYSTEMS.find((s) => s.key === k) ?? SYSTEMS[0];
-
-// Compound emoji for Omnivore (herbivore + carnivore) — tightly kerned pair.
-export function OmnivoreIcon({ size = 24 }: { size?: number } = {}) {
-  return (
-    <span
-      style={{ fontSize: size, lineHeight: 1, letterSpacing: "-0.35em", paddingRight: "0.25em", display: "inline-block" }}
-      aria-label="Omnivore"
-    >
-      🌿🍖
-    </span>
-  );
-}
