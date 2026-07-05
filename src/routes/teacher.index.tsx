@@ -1,4 +1,4 @@
-import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
+import { Link, useHistory } from "react-router-dom";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
@@ -12,13 +12,9 @@ import {
 } from "@/lib/offline-sync";
 import type { LocalVideo } from "@/lib/offline-db";
 
-export const Route = createFileRoute("/teacher/")({
-  component: TeacherDashboard,
-});
-
 function TeacherDashboard() {
   const qc = useQueryClient();
-  const navigate = useNavigate();
+  const history = useHistory();
   const [uploading, setUploading] = useState(false);
   const [title, setTitle] = useState("");
   const [system, setSystem] = useState<BodySystem>("food_chain");
@@ -137,8 +133,7 @@ function TeacherDashboard() {
                       </p>
                     </div>
                     <Link
-                      to="/teacher/pending/$localId"
-                      params={{ localId: v.localId }}
+                      to={`/teacher/pending/${v.localId}`}
                       className="px-3 py-2 rounded-full bg-primary text-primary-foreground text-sm font-semibold"
                     >
                       Edit offline
@@ -177,8 +172,7 @@ function TeacherDashboard() {
                     <p className="text-xs text-muted-foreground">{meta.label}</p>
                   </div>
                   <Link
-                    to="/teacher/video/$videoId"
-                    params={{ videoId: v.id }}
+                    to={`/teacher/video/${v.id}`}
                     className="px-3 py-2 rounded-full bg-primary text-primary-foreground text-sm font-semibold"
                   >
                     Edit

@@ -1,14 +1,7 @@
-import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
+import { Link, useHistory } from "react-router-dom";
 import { StudentHeader } from "@/components/student-header";
 import { useState } from "react";
 import { Scanner } from "@yudiel/react-qr-scanner";
-
-export const Route = createFileRoute("/scan")({
-  head: () => ({
-    meta: [{ title: "Scan QR — Aghamorph" }],
-  }),
-  component: ScanPage,
-});
 
 function extractVideoId(raw: string): string | null {
   const trimmed = raw.trim();
@@ -24,7 +17,7 @@ function extractVideoId(raw: string): string | null {
 }
 
 function ScanPage() {
-  const navigate = useNavigate();
+  const history = useHistory();
   const [value, setValue] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [scanning, setScanning] = useState(true);

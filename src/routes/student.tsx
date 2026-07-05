@@ -1,4 +1,4 @@
-import { createFileRoute, Link } from "@tanstack/react-router";
+import { Link } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { SYSTEMS, systemMeta, type BodySystem } from "@/lib/systems";
@@ -6,16 +6,6 @@ import { StudentHeader } from "@/components/student-header";
 import { StudentGate } from "@/components/student-gate";
 import { loadProgress } from "@/lib/progress";
 import { useEffect, useState } from "react";
-
-export const Route = createFileRoute("/student")({
-  head: () => ({
-    meta: [
-      { title: "Student — Aghamorph" },
-      { name: "description", content: "Watch lessons and earn badges." },
-    ],
-  }),
-  component: StudentHome,
-});
 
 function StudentHome() {
   const { data: videos = [] } = useQuery({
@@ -102,8 +92,7 @@ function StudentHome() {
                     {list.map((v) => (
                       <li key={v.id}>
                         <Link
-                          to="/play/$videoId"
-                          params={{ videoId: v.id }}
+                          to={`/play/${v.id}`}
                           className="flex items-center gap-3 p-3 rounded-xl bg-muted hover:bg-secondary transition group"
                         >
                           <span className="size-9 rounded-full bg-primary text-primary-foreground grid place-items-center">

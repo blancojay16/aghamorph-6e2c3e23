@@ -1,4 +1,4 @@
-import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
+import { Link, useHistory, useParams } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import { useEffect, useRef, useState } from "react";
 
@@ -8,10 +8,6 @@ import { systemMeta, type BodySystem } from "@/lib/systems";
 import { addScore, markVideoComplete, awardBadge } from "@/lib/progress";
 import { loadStudent } from "@/lib/student";
 import { cacheRemoteVideo, getCachedVideoBlob } from "@/lib/offline-sync";
-
-export const Route = createFileRoute("/play/$videoId")({
-  component: PlayPage,
-});
 
 interface Checkpoint {
   id: string;
@@ -29,8 +25,8 @@ interface QuizQuestion {
 }
 
 function PlayPage() {
-  const { videoId } = Route.useParams();
-  const navigate = useNavigate();
+  const { videoId } = useParams<{videoId:string}>();
+  const history = useHistory();
 
   const { data, isLoading } = useQuery({
     queryKey: ["video", videoId],
@@ -289,7 +285,7 @@ function PlayPage() {
             </button>
           )}
           <button
-            onClick={() => navigate({ to: "/matching" })}
+            onClick={() => history.push("/matching")}
             className="px-5 py-2.5 rounded-full bg-secondary text-secondary-foreground font-semibold hover:bg-muted"
           >
             Play matching game →

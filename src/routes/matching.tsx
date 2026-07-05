@@ -1,15 +1,10 @@
-import { createFileRoute, Link } from "@tanstack/react-router";
+import { Link } from "react-router-dom";
 import { useMemo, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { StudentHeader } from "@/components/student-header";
 import { SYSTEMS, type BodySystem } from "@/lib/systems";
 import { addScore, awardBadge } from "@/lib/progress";
 import { supabase } from "@/integrations/supabase/client";
-
-export const Route = createFileRoute("/matching")({
-  head: () => ({ meta: [{ title: "Matching Game — Aghamorph" }] }),
-  component: MatchingGame,
-});
 
 interface Item {
   id: string;

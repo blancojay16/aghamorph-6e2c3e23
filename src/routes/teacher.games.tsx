@@ -1,13 +1,9 @@
-import { createFileRoute } from "@tanstack/react-router";
+import {  } from "react-router-dom";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { SYSTEMS, type BodySystem } from "@/lib/systems";
 import { toast } from "sonner";
-
-export const Route = createFileRoute("/teacher/games")({
-  component: TeacherGames,
-});
 
 type GameKey = "jigsaw" | "memory" | "matching";
 

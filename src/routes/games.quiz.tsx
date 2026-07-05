@@ -1,13 +1,8 @@
-import { createFileRoute, Link } from "@tanstack/react-router";
+import { Link } from "react-router-dom";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { StudentHeader } from "@/components/student-header";
 import { addScore } from "@/lib/progress";
 import { awardGameScore } from "@/lib/game-scores";
-
-export const Route = createFileRoute("/games/quiz")({
-  head: () => ({ meta: [{ title: "Quiz Rush — Aghamorph" }] }),
-  component: Quiz,
-});
 
 interface Q {
   q: string;

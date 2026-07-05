@@ -1,21 +1,11 @@
-import { createFileRoute, useNavigate } from "@tanstack/react-router";
+import { useHistory } from "react-router-dom";
 import { useState } from "react";
 import { GraduationCap, UserCog, X } from "lucide-react";
-
-export const Route = createFileRoute("/")({
-  head: () => ({
-    meta: [
-      { title: "Aghamorph — Choose your role" },
-      { name: "description", content: "Are you a student or a teacher?" },
-    ],
-  }),
-  component: RoleChooser,
-});
 
 const TEACHER_PIN = "1234";
 
 function RoleChooser() {
-  const navigate = useNavigate();
+  const history = useHistory();
   const [showPin, setShowPin] = useState(false);
   const [pin, setPin] = useState("");
   const [error, setError] = useState("");
@@ -26,7 +16,7 @@ function RoleChooser() {
       setShowPin(false);
       setPin("");
       setError("");
-      navigate({ to: "/teacher" });
+      history.push("/teacher");
     } else {
       setError("Incorrect PIN");
     }
@@ -40,7 +30,7 @@ function RoleChooser() {
 
         <div className="grid grid-cols-2 gap-4">
           <button
-            onClick={() => navigate({ to: "/student" })}
+            onClick={() => history.push("/student")}
             className="group flex flex-col items-center justify-center gap-3 aspect-square rounded-3xl bg-card border-2 hover:border-primary hover:shadow-xl transition"
           >
             <GraduationCap className="!size-12 text-primary group-hover:scale-110 transition" />

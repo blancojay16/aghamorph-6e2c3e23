@@ -1,13 +1,9 @@
-import { createFileRoute, Link, Outlet, useNavigate } from "@tanstack/react-router";
+import { Link, useHistory } from "react-router-dom";
 import { useEffect, useState } from "react";
 import { listLocalVideos, startSyncLoop } from "@/lib/offline-sync";
 
-export const Route = createFileRoute("/teacher")({
-  component: TeacherLayout,
-});
-
 function TeacherLayout() {
-  const navigate = useNavigate();
+  const history = useHistory();
   const [pending, setPending] = useState(0);
   const [online, setOnline] = useState(
     typeof navigator === "undefined" ? true : navigator.onLine,
@@ -82,7 +78,7 @@ function TeacherLayout() {
             Student view
           </Link>
           <button
-            onClick={() => navigate({ to: "/" })}
+            onClick={() => history.push("/")}
             className="text-sm px-3 py-1.5 rounded-full bg-muted hover:bg-secondary"
           >
             Leave
@@ -90,7 +86,7 @@ function TeacherLayout() {
         </div>
       </header>
       <main className="mx-auto max-w-6xl px-4 py-6">
-        <Outlet />
+        {children}
       </main>
     </div>
   );
