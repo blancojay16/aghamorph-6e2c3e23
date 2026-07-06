@@ -54,10 +54,10 @@ export function StudentHeader() {
           Games
         </Link>
         <Link
-          to="/scan"
-          className={`px-3 py-1.5 rounded-full whitespace-nowrap ${path === "/scan" ? "bg-primary text-primary-foreground" : "hover:bg-muted"}`}
+          to="/matching"
+          className={`px-3 py-1.5 rounded-full whitespace-nowrap ${path === "/matching" ? "bg-primary text-primary-foreground" : "hover:bg-muted"}`}
         >
-          Scan
+          Match
         </Link>
         <Link
           to="/"
