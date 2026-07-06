@@ -47,14 +47,6 @@ function StudentHome() {
           <p className="text-lg text-muted-foreground">
             Tap a topic to watch, learn, and earn badges 🏅
           </p>
-          <div className="mt-4">
-            <Link
-              to="/scan"
-              className="inline-block px-5 py-2.5 rounded-full bg-accent text-accent-foreground font-bold hover:scale-105 transition"
-            >
-              📷 Scan a lesson QR code
-            </Link>
-          </div>
         </section>
 
         <div className="grid gap-5 md:grid-cols-2">
