@@ -14,6 +14,59 @@ export type Database = {
   }
   public: {
     Tables: {
+      arrange_chains: {
+        Row: {
+          created_at: string
+          id: string
+          title: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          title: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          title?: string
+        }
+        Relationships: []
+      }
+      arrange_items: {
+        Row: {
+          chain_id: string
+          created_at: string
+          id: string
+          image_path: string
+          label: string
+          position: number
+        }
+        Insert: {
+          chain_id: string
+          created_at?: string
+          id?: string
+          image_path: string
+          label?: string
+          position: number
+        }
+        Update: {
+          chain_id?: string
+          created_at?: string
+          id?: string
+          image_path?: string
+          label?: string
+          position?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "arrange_items_chain_id_fkey"
+            columns: ["chain_id"]
+            isOneToOne: false
+            referencedRelation: "arrange_chains"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       checkpoints: {
         Row: {
           correct_index: number
@@ -51,6 +104,56 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      connect_pairs: {
+        Row: {
+          created_at: string
+          id: string
+          left_image_path: string
+          right_image_path: string
+          set_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          left_image_path: string
+          right_image_path: string
+          set_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          left_image_path?: string
+          right_image_path?: string
+          set_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "connect_pairs_set_id_fkey"
+            columns: ["set_id"]
+            isOneToOne: false
+            referencedRelation: "connect_sets"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      connect_sets: {
+        Row: {
+          created_at: string
+          id: string
+          title: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          title: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          title?: string
+        }
+        Relationships: []
       }
       game_assets: {
         Row: {
@@ -113,6 +216,59 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      quiz_match_choices: {
+        Row: {
+          created_at: string
+          id: string
+          image_path: string
+          is_correct: boolean
+          question_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          image_path: string
+          is_correct?: boolean
+          question_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          image_path?: string
+          is_correct?: boolean
+          question_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "quiz_match_choices_question_id_fkey"
+            columns: ["question_id"]
+            isOneToOne: false
+            referencedRelation: "quiz_match_questions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      quiz_match_questions: {
+        Row: {
+          created_at: string
+          id: string
+          prompt_image_path: string
+          question_text: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          prompt_image_path: string
+          question_text?: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          prompt_image_path?: string
+          question_text?: string
+        }
+        Relationships: []
       }
       quiz_questions: {
         Row: {
@@ -226,6 +382,30 @@ export type Database = {
           name?: string
           score?: number
           updated_at?: string
+        }
+        Relationships: []
+      }
+      trace_animals: {
+        Row: {
+          category: string
+          created_at: string
+          id: string
+          image_path: string
+          label: string
+        }
+        Insert: {
+          category: string
+          created_at?: string
+          id?: string
+          image_path: string
+          label: string
+        }
+        Update: {
+          category?: string
+          created_at?: string
+          id?: string
+          image_path?: string
+          label?: string
         }
         Relationships: []
       }
