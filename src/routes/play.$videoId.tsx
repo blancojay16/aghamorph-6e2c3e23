@@ -203,34 +203,6 @@ function PlayPage() {
           ) : (
             <div className="w-full h-full grid place-items-center text-white/60">Preparing…</div>
           )}
-          {activeCheckpoint && (
-            <div className="absolute inset-0 bg-black/75 grid place-items-center p-4">
-              <div className="bg-card text-foreground rounded-2xl p-4 max-w-sm w-full">
-                <p className="font-bold mb-3">{activeCheckpoint.prompt}</p>
-                <ul className="space-y-2">
-                  {activeCheckpoint.options.map((o, i) => {
-                    const isPicked = pickedIndex === i;
-                    const isRight = i === activeCheckpoint.correct_index;
-                    let cls = "bg-muted";
-                    if (feedback && isRight) cls = "bg-[oklch(0.85_0.15_145)] text-foreground";
-                    else if (feedback && isPicked && !isRight)
-                      cls = "bg-destructive text-destructive-foreground";
-                    return (
-                      <li key={i}>
-                        <button
-                          disabled={pickedIndex !== null}
-                          onClick={() => answer(i)}
-                          className={`w-full text-left px-3 py-2 rounded-lg font-semibold ${cls}`}
-                        >
-                          {o}
-                        </button>
-                      </li>
-                    );
-                  })}
-                </ul>
-              </div>
-            </div>
-          )}
         </div>
 
         {showQuiz && (

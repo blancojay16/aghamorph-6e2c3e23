@@ -2,11 +2,14 @@ import { Link } from "react-router-dom";
 import { StudentHeader } from "@/components/student-header";
 
 const GAMES = [
+  { to: "/games/quizmatch", emoji: "🎯", title: "Match It!", desc: "Answer picture questions your teacher made", color: "var(--food-chain)" },
+  { to: "/games/arrange", emoji: "🔢", title: "Arrange the Order", desc: "Drag pictures into the right food chain order", color: "var(--herbivore)" },
+  { to: "/games/traceanimal", emoji: "✏️", title: "Trace the Animal", desc: "Trace the outline, then guess what it eats", color: "var(--carnivore)" },
+  { to: "/games/connect", emoji: "🔗", title: "Connect the Pairs", desc: "Draw a line between matching pictures", color: "var(--omnivore)" },
   { to: "/games/jigsaw", emoji: "🧩", title: "Jigsaw Puzzle", desc: "Rebuild a food chain picture", color: "var(--food-chain)" },
   { to: "/games/memory", emoji: "🧠", title: "Memory Flip", desc: "Match the pairs of animals & plants", color: "var(--herbivore)" },
   { to: "/games/quiz", emoji: "⚡", title: "Quiz Rush", desc: "Beat the clock, build a streak", color: "var(--carnivore)" },
   { to: "/games/label", emoji: "🏷️", title: "Sort the Eaters", desc: "Sort each animal as herbivore, carnivore, or omnivore", color: "var(--omnivore)" },
-  { to: "/matching", emoji: "🎯", title: "Match It!", desc: "Pick the right food chain group", color: "var(--food-chain)" },
 ] as const;
 
 function GamesHub() {

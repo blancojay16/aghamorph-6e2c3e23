@@ -73,8 +73,17 @@ function TeacherLayout({ children }: { children: React.ReactNode }) {
           <Link to="/teacher/games" className="text-sm px-3 py-1.5 rounded-full hover:bg-muted">
             🧩 Game images
           </Link>
-          <Link to="/teacher/trace" className="text-sm px-3 py-1.5 rounded-full hover:bg-muted">
-            ➡️ Trace game
+          <Link to="/teacher/quizmatch" className="text-sm px-3 py-1.5 rounded-full hover:bg-muted">
+            🎯 Match It
+          </Link>
+          <Link to="/teacher/arrange" className="text-sm px-3 py-1.5 rounded-full hover:bg-muted">
+            🔢 Arrange
+          </Link>
+          <Link to="/teacher/traceanimal" className="text-sm px-3 py-1.5 rounded-full hover:bg-muted">
+            ✏️ Trace Animal
+          </Link>
+          <Link to="/teacher/connect" className="text-sm px-3 py-1.5 rounded-full hover:bg-muted">
+            🔗 Connect
           </Link>
           <Link to="/" className="text-sm px-3 py-1.5 rounded-full hover:bg-muted">
             Student view
