@@ -2,7 +2,11 @@ import { Link } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 
-const GAMES: { key: "label" | "memory" | "jigsaw" | "quiz"; label: string; emoji: string }[] = [
+const GAMES: { key: string; label: string; emoji: string }[] = [
+  { key: "quizmatch", emoji: "🎯", label: "Match It!" },
+  { key: "arrange", emoji: "🔢", label: "Arrange the Order" },
+  { key: "traceanimal", emoji: "✏️", label: "Trace the Animal" },
+  { key: "connect", emoji: "🔗", label: "Connect the Pairs" },
   { key: "label", emoji: "🏷️", label: "Sort the Eaters" },
   { key: "memory", emoji: "🧠", label: "Memory Flip" },
   { key: "jigsaw", emoji: "🧩", label: "Jigsaw Puzzle" },

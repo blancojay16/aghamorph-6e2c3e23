@@ -54,12 +54,6 @@ export function StudentHeader() {
           Games
         </Link>
         <Link
-          to="/matching"
-          className={`px-3 py-1.5 rounded-full whitespace-nowrap ${path === "/matching" ? "bg-primary text-primary-foreground" : "hover:bg-muted"}`}
-        >
-          Match
-        </Link>
-        <Link
           to="/"
           className="sm:hidden ml-auto px-3 py-1.5 rounded-full text-xs text-muted-foreground hover:bg-muted whitespace-nowrap"
         >
