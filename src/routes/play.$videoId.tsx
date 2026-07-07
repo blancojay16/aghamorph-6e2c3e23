@@ -217,6 +217,30 @@ function PlayPage() {
           </div>
         )}
       </main>
+
+      {activeCheckpoint && (
+        <div className="fixed inset-0 z-50 bg-background/95 backdrop-blur grid place-items-center p-6 overflow-auto">
+          <div className="w-full max-w-3xl text-center">
+            <p className="text-xs uppercase tracking-widest text-muted-foreground mb-3">Checkpoint</p>
+            <h2 className="text-3xl md:text-5xl font-extrabold mb-8">{activeCheckpoint.prompt}</h2>
+            <div className="grid gap-4 sm:grid-cols-2">
+              {activeCheckpoint.options.map((o, i) => {
+                const isPicked = pickedIndex === i;
+                const isRight = i === activeCheckpoint.correct_index;
+                let cls = "bg-card border-4 border-transparent hover:border-primary";
+                if (feedback && isRight) cls = "bg-[oklch(0.85_0.15_145)] text-foreground border-4 border-[oklch(0.6_0.2_145)]";
+                else if (feedback && isPicked && !isRight) cls = "bg-destructive text-destructive-foreground border-4 border-destructive";
+                return (
+                  <button key={i} disabled={pickedIndex !== null} onClick={() => answer(i)}
+                    className={`px-6 py-6 rounded-2xl text-xl md:text-2xl font-bold transition ${cls}`}>
+                    {o}
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
