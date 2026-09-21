@@ -67,6 +67,62 @@ export type Database = {
           },
         ]
       }
+      chain_quest_games: {
+        Row: {
+          created_at: string
+          id: string
+          title: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          title: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          title?: string
+        }
+        Relationships: []
+      }
+      chain_quest_items: {
+        Row: {
+          created_at: string
+          decoy_path: string | null
+          game_id: string
+          id: string
+          image_path: string
+          label: string
+          position: number
+        }
+        Insert: {
+          created_at?: string
+          decoy_path?: string | null
+          game_id: string
+          id?: string
+          image_path: string
+          label?: string
+          position: number
+        }
+        Update: {
+          created_at?: string
+          decoy_path?: string | null
+          game_id?: string
+          id?: string
+          image_path?: string
+          label?: string
+          position?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "chain_quest_items_game_id_fkey"
+            columns: ["game_id"]
+            isOneToOne: false
+            referencedRelation: "chain_quest_games"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       checkpoints: {
         Row: {
           correct_index: number
@@ -155,6 +211,112 @@ export type Database = {
         }
         Relationships: []
       }
+      cycle_games: {
+        Row: {
+          created_at: string
+          id: string
+          title: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          title: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          title?: string
+        }
+        Relationships: []
+      }
+      cycle_items: {
+        Row: {
+          created_at: string
+          game_id: string
+          id: string
+          image_path: string
+          label: string
+          position: number
+        }
+        Insert: {
+          created_at?: string
+          game_id: string
+          id?: string
+          image_path: string
+          label?: string
+          position: number
+        }
+        Update: {
+          created_at?: string
+          game_id?: string
+          id?: string
+          image_path?: string
+          label?: string
+          position?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "cycle_items_game_id_fkey"
+            columns: ["game_id"]
+            isOneToOne: false
+            referencedRelation: "cycle_games"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      diet_sorter_games: {
+        Row: {
+          created_at: string
+          id: string
+          title: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          title: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          title?: string
+        }
+        Relationships: []
+      }
+      diet_sorter_items: {
+        Row: {
+          category: string
+          created_at: string
+          game_id: string
+          id: string
+          image_path: string
+          label: string
+        }
+        Insert: {
+          category: string
+          created_at?: string
+          game_id: string
+          id?: string
+          image_path: string
+          label?: string
+        }
+        Update: {
+          category?: string
+          created_at?: string
+          game_id?: string
+          id?: string
+          image_path?: string
+          label?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "diet_sorter_items_game_id_fkey"
+            columns: ["game_id"]
+            isOneToOne: false
+            referencedRelation: "diet_sorter_games"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       game_assets: {
         Row: {
           created_at: string
@@ -162,6 +324,7 @@ export type Database = {
           game: string
           id: string
           label: string
+          set_id: string | null
           system: Database["public"]["Enums"]["body_system"]
         }
         Insert: {
@@ -170,6 +333,7 @@ export type Database = {
           game?: string
           id?: string
           label: string
+          set_id?: string | null
           system: Database["public"]["Enums"]["body_system"]
         }
         Update: {
@@ -178,9 +342,18 @@ export type Database = {
           game?: string
           id?: string
           label?: string
+          set_id?: string | null
           system?: Database["public"]["Enums"]["body_system"]
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "game_assets_set_id_fkey"
+            columns: ["set_id"]
+            isOneToOne: false
+            referencedRelation: "memory_sets"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       group_game_scores: {
         Row: {
@@ -217,9 +390,161 @@ export type Database = {
           },
         ]
       }
+      memory_sets: {
+        Row: {
+          created_at: string | null
+          id: string
+          title: string
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          title: string
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          title?: string
+        }
+        Relationships: []
+      }
+      ph_chain_games: {
+        Row: {
+          created_at: string
+          id: string
+          title: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          title: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          title?: string
+        }
+        Relationships: []
+      }
+      ph_chain_items: {
+        Row: {
+          created_at: string
+          eats_ids: string
+          env_ids: string
+          game_id: string
+          id: string
+          image_path: string
+          label: string
+          role: string
+        }
+        Insert: {
+          created_at?: string
+          eats_ids?: string
+          env_ids?: string
+          game_id: string
+          id?: string
+          image_path: string
+          label?: string
+          role?: string
+        }
+        Update: {
+          created_at?: string
+          eats_ids?: string
+          env_ids?: string
+          game_id?: string
+          id?: string
+          image_path?: string
+          label?: string
+          role?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ph_chain_items_game_id_fkey"
+            columns: ["game_id"]
+            isOneToOne: false
+            referencedRelation: "ph_environments"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      ph_environments: {
+        Row: {
+          created_at: string
+          id: string
+          name: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          name: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          name?: string
+        }
+        Relationships: []
+      }
+      pyramid_games: {
+        Row: {
+          created_at: string
+          id: string
+          title: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          title: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          title?: string
+        }
+        Relationships: []
+      }
+      pyramid_items: {
+        Row: {
+          created_at: string
+          eats_ids: string
+          game_id: string
+          id: string
+          image_path: string
+          label: string
+          level: number
+        }
+        Insert: {
+          created_at?: string
+          eats_ids?: string
+          game_id: string
+          id?: string
+          image_path: string
+          label?: string
+          level: number
+        }
+        Update: {
+          created_at?: string
+          eats_ids?: string
+          game_id?: string
+          id?: string
+          image_path?: string
+          label?: string
+          level?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "pyramid_items_game_id_fkey"
+            columns: ["game_id"]
+            isOneToOne: false
+            referencedRelation: "pyramid_games"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       quiz_match_choices: {
         Row: {
           created_at: string
+          feedback: string | null
           id: string
           image_path: string
           is_correct: boolean
@@ -227,6 +552,7 @@ export type Database = {
         }
         Insert: {
           created_at?: string
+          feedback?: string | null
           id?: string
           image_path: string
           is_correct?: boolean
@@ -234,6 +560,7 @@ export type Database = {
         }
         Update: {
           created_at?: string
+          feedback?: string | null
           id?: string
           image_path?: string
           is_correct?: boolean
@@ -364,6 +691,7 @@ export type Database = {
       students: {
         Row: {
           created_at: string
+          day_configs: Json
           id: string
           name: string
           score: number
@@ -371,6 +699,7 @@ export type Database = {
         }
         Insert: {
           created_at?: string
+          day_configs?: Json
           id?: string
           name: string
           score?: number
@@ -378,34 +707,11 @@ export type Database = {
         }
         Update: {
           created_at?: string
+          day_configs?: Json
           id?: string
           name?: string
           score?: number
           updated_at?: string
-        }
-        Relationships: []
-      }
-      trace_animals: {
-        Row: {
-          category: string
-          created_at: string
-          id: string
-          image_path: string
-          label: string
-        }
-        Insert: {
-          category: string
-          created_at?: string
-          id?: string
-          image_path: string
-          label: string
-        }
-        Update: {
-          category?: string
-          created_at?: string
-          id?: string
-          image_path?: string
-          label?: string
         }
         Relationships: []
       }
@@ -427,6 +733,36 @@ export type Database = {
           id?: string
           system?: string
           title?: string
+        }
+        Relationships: []
+      }
+      trace_game_data: {
+        Row: {
+          animal_name: string
+          category: string
+          created_at: string | null
+          file_path: string
+          id: string
+          set_number: number
+          slot_number: number
+        }
+        Insert: {
+          animal_name: string
+          category: string
+          created_at?: string | null
+          file_path: string
+          id?: string
+          set_number: number
+          slot_number: number
+        }
+        Update: {
+          animal_name?: string
+          category?: string
+          created_at?: string | null
+          file_path?: string
+          id?: string
+          set_number?: number
+          slot_number?: number
         }
         Relationships: []
       }
@@ -492,6 +828,71 @@ export type Database = {
         }
         Relationships: []
       }
+      who_eats_who_games: {
+        Row: {
+          created_at: string
+          id: string
+          title: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          title: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          title?: string
+        }
+        Relationships: []
+      }
+      who_eats_who_questions: {
+        Row: {
+          correct_predator: string
+          created_at: string
+          game_id: string
+          id: string
+          predator_a_label: string
+          predator_a_path: string
+          predator_b_label: string
+          predator_b_path: string
+          prey_label: string
+          prey_path: string
+        }
+        Insert: {
+          correct_predator: string
+          created_at?: string
+          game_id: string
+          id?: string
+          predator_a_label?: string
+          predator_a_path: string
+          predator_b_label?: string
+          predator_b_path: string
+          prey_label?: string
+          prey_path: string
+        }
+        Update: {
+          correct_predator?: string
+          created_at?: string
+          game_id?: string
+          id?: string
+          predator_a_label?: string
+          predator_a_path?: string
+          predator_b_label?: string
+          predator_b_path?: string
+          prey_label?: string
+          prey_path?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "who_eats_who_questions_game_id_fkey"
+            columns: ["game_id"]
+            isOneToOne: false
+            referencedRelation: "who_eats_who_games"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Views: {
       [_ in never]: never
@@ -500,7 +901,13 @@ export type Database = {
       [_ in never]: never
     }
     Enums: {
-      body_system: "food_chain" | "herbivore" | "carnivore" | "omnivore"
+      body_system:
+        | "food_chain"
+        | "herbivore"
+        | "carnivore"
+        | "omnivore"
+        | "general"
+        | "producer"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -516,12 +923,12 @@ export type Tables<
   DefaultSchemaTableNameOrOptions extends
     | keyof (DefaultSchema["Tables"] & DefaultSchema["Views"])
     | { schema: keyof DatabaseWithoutInternals },
-  TableName extends DefaultSchemaTableNameOrOptions extends {
+  TableName extends (DefaultSchemaTableNameOrOptions extends {
     schema: keyof DatabaseWithoutInternals
   }
     ? keyof (DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"] &
         DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Views"])
-    : never = never,
+    : never) = never,
 > = DefaultSchemaTableNameOrOptions extends {
   schema: keyof DatabaseWithoutInternals
 }
@@ -545,11 +952,11 @@ export type TablesInsert<
   DefaultSchemaTableNameOrOptions extends
     | keyof DefaultSchema["Tables"]
     | { schema: keyof DatabaseWithoutInternals },
-  TableName extends DefaultSchemaTableNameOrOptions extends {
+  TableName extends (DefaultSchemaTableNameOrOptions extends {
     schema: keyof DatabaseWithoutInternals
   }
     ? keyof DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"]
-    : never = never,
+    : never) = never,
 > = DefaultSchemaTableNameOrOptions extends {
   schema: keyof DatabaseWithoutInternals
 }
@@ -570,11 +977,11 @@ export type TablesUpdate<
   DefaultSchemaTableNameOrOptions extends
     | keyof DefaultSchema["Tables"]
     | { schema: keyof DatabaseWithoutInternals },
-  TableName extends DefaultSchemaTableNameOrOptions extends {
+  TableName extends (DefaultSchemaTableNameOrOptions extends {
     schema: keyof DatabaseWithoutInternals
   }
     ? keyof DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"]
-    : never = never,
+    : never) = never,
 > = DefaultSchemaTableNameOrOptions extends {
   schema: keyof DatabaseWithoutInternals
 }
@@ -595,11 +1002,11 @@ export type Enums<
   DefaultSchemaEnumNameOrOptions extends
     | keyof DefaultSchema["Enums"]
     | { schema: keyof DatabaseWithoutInternals },
-  EnumName extends DefaultSchemaEnumNameOrOptions extends {
+  EnumName extends (DefaultSchemaEnumNameOrOptions extends {
     schema: keyof DatabaseWithoutInternals
   }
     ? keyof DatabaseWithoutInternals[DefaultSchemaEnumNameOrOptions["schema"]]["Enums"]
-    : never = never,
+    : never) = never,
 > = DefaultSchemaEnumNameOrOptions extends {
   schema: keyof DatabaseWithoutInternals
 }
@@ -612,11 +1019,11 @@ export type CompositeTypes<
   PublicCompositeTypeNameOrOptions extends
     | keyof DefaultSchema["CompositeTypes"]
     | { schema: keyof DatabaseWithoutInternals },
-  CompositeTypeName extends PublicCompositeTypeNameOrOptions extends {
+  CompositeTypeName extends (PublicCompositeTypeNameOrOptions extends {
     schema: keyof DatabaseWithoutInternals
   }
     ? keyof DatabaseWithoutInternals[PublicCompositeTypeNameOrOptions["schema"]]["CompositeTypes"]
-    : never = never,
+    : never) = never,
 > = PublicCompositeTypeNameOrOptions extends {
   schema: keyof DatabaseWithoutInternals
 }
@@ -628,7 +1035,14 @@ export type CompositeTypes<
 export const Constants = {
   public: {
     Enums: {
-      body_system: ["food_chain", "herbivore", "carnivore", "omnivore"],
+      body_system: [
+        "food_chain",
+        "herbivore",
+        "carnivore",
+        "omnivore",
+        "general",
+        "producer",
+      ],
     },
   },
 } as const
